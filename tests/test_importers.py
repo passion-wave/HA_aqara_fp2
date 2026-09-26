@@ -168,3 +168,71 @@ def test_request_contract(change):
         data["write"] = True
     with pytest.raises(InvalidResponse):
         request_paths(json.dumps(data).encode())
+
+
+def test_multiline_posix_curl_continuations_preserve_single_quoted_body_bytes():
+    item, _ = capture()
+    body = json.dumps(json.loads(item.body), ensure_ascii=False, indent=2).encode()
+    command = "curl \\\n    " + shlex.quote(f"https://{HOST}{PATH}")
+    for key, value in item.headers.items():
+        command += " \\\n    -H " + shlex.quote(f"{key}: {value}")
+    command += " \\\n    --data-raw " + shlex.quote(body.decode())
+    assert import_curl(command).body == body
+
+
+def test_double_quoted_shell_continuation_decodes_argument_before_g1():
+    item, _ = capture()
+    # POSIX removes backslash-LF inside double quotes before curl sees the body.
+    quoted = (
+        '"' + item.body.decode().replace('"', '\\"').replace("needParam", "need\\\nParam") + '"'
+    )
+    command = curl_text().split(" --data-raw ")[0] + " --data-raw " + quoted
+    assert import_curl(command).body == item.body
+
+
+def test_single_quoted_backslash_newline_is_not_silently_repaired():
+    item, _ = capture()
+    # This JSON is intentionally invalid. Removing its literal continuation
+    # would silently turn it into a different valid, signable request.
+    broken = item.body.decode().replace("needParam", "need\\\nParam")
+    command = curl_text().split(" --data-raw ")[0] + " --data-raw " + shlex.quote(broken)
+    with pytest.raises(InvalidResponse):
+        import_curl(command)
+
+
+@pytest.mark.parametrize(
+    ("command_text", "expected"),
+    [
+        ("curl \\\n value", "curl  value"),
+        ("curl 'literal\\\ntext'", "curl 'literal\\\ntext'"),
+        ('curl "joined\\\ntext"', 'curl "joinedtext"'),
+        ("curl \\\\n value", "curl \\\\n value"),
+        ("curl \\' \\\n value", "curl \\'  value"),
+        ('curl "escaped\\"quote\\\njoined"', 'curl "escaped\\"quotejoined"'),
+        ("curl trailing\\", "curl trailing\\"),
+    ],
+)
+def test_posix_continuation_quote_and_escape_boundaries(command_text, expected):
+    from custom_components.aqara_presence_lab.api.importers import _remove_shell_continuations
+
+    assert _remove_shell_continuations(command_text) == expected
+
+
+def test_multiline_curl_does_not_make_disallowed_flags_or_commands_executable():
+    command = curl_text().replace(" -H ", " \\\n -H ")
+    for suffix in (
+        " \\\n --proxy https://evil.invalid",
+        " \\\n | cat",
+        " \\\n --data-binary @file",
+    ):
+        with pytest.raises(AqaraError):
+            import_curl(command + suffix)
+
+
+@pytest.mark.parametrize("backslashes", [1, 2, 3, 4])
+def test_continuation_only_with_unescaped_backslash(backslashes):
+    from custom_components.aqara_presence_lab.api.importers import _remove_shell_continuations
+
+    command = "curl " + "\\" * backslashes + "\nnext"
+    expected = "curl " + "\\" * (backslashes - 1) + "next" if backslashes % 2 else command
+    assert _remove_shell_continuations(command) == expected

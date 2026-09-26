@@ -216,6 +216,39 @@ def import_har(data: str | bytes, *, entry_index: int | None = None) -> Imported
     return _capture(headers, body, wire_exact=False, source="har_text")
 
 
+def _remove_shell_continuations(text: str) -> str:
+    """Apply only POSIX backslash-LF removal before shlex tokenization.
+
+    shlex does not implement this shell rule. Single-quoted text is literal;
+    inside it even a backslash followed by LF must remain exactly unchanged.
+    Escaped quote/backslash pairs must not change the surrounding quote state.
+    This decodes command syntax, never repairs or reserializes a JSON body.
+    """
+    output: list[str] = []
+    quote: str | None = None
+    index = 0
+    while index < len(text):
+        character = text[index]
+        if quote == "'":
+            output.append(character)
+            if character == "'":
+                quote = None
+        elif character == "\\" and index + 1 < len(text):
+            following = text[index + 1]
+            if following != "\n":
+                output.extend((character, following))
+            index += 1
+        else:
+            output.append(character)
+            if character in ("'", '"'):
+                if quote == character:
+                    quote = None
+                elif quote is None:
+                    quote = character
+        index += 1
+    return "".join(output)
+
+
 def import_curl(data: str | bytes) -> ImportedCapture:
     try:
         text = data.decode("utf-8") if isinstance(data, bytes) else data
@@ -224,7 +257,7 @@ def import_curl(data: str | bytes) -> ImportedCapture:
         # Conservative POSIX subset. PowerShell/cmd/bash ANSI-C quoting rejected.
         if any(item in text for item in ("$", "`", "|", ";", ">", "<", "\r")):
             raise ValueError
-        args = shlex.split(text, posix=True)
+        args = shlex.split(_remove_shell_continuations(text), posix=True)
         if not args or args.pop(0) != "curl":
             raise ValueError
         headers, urls, body = [], [], None
