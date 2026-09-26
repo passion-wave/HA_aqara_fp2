@@ -1,0 +1,16 @@
+name: Funktion vorschlagen
+description: Erweiterung mit nachvollziehbarer Datengrundlage
+title: "[Idee]: "
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Anwendungsfall
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Bekannte Protokollgrundlage
+      description: Nur öffentliche Quellen und bereinigte Schemas; keine Kontodaten oder Roh-Captures.
+

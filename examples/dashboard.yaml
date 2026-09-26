@@ -1,0 +1,39 @@
+# Beispiel für einen später freigegebenen Livebetrieb. Alle Entity-IDs sind Platzhalter.
+title: Aqara Zusatzdaten
+views:
+  - title: Übersicht
+    path: aqara-zusatzdaten
+    cards:
+      - type: markdown
+        content: >-
+          ## Aqara Zusatzdaten
+          Lokale Präsenz bleibt unabhängig. Die folgenden Werte stammen
+          aus der Aqara-Cloud und werden mit ihrer Datenqualität angezeigt.
+      - type: entities
+        title: Verbindung und Qualität
+        show_header_toggle: false
+        entities:
+          - entity: sensor.aqara_cloud_connection_status
+            name: Verbindung
+          - entity: binary_sensor.aqara_cloud_connection_problem
+            name: Verbindungsproblem
+          - entity: sensor.aqara_cloud_last_successful_read
+            name: Letzter erfolgreicher Abruf
+          - entity: button.aqara_cloud_refresh
+            name: Jetzt aktualisieren
+      - type: entities
+        title: Sensor A – zuletzt gemeldet
+        show_header_toggle: false
+        entities:
+          - entity: sensor.aqara_sensor_a_data_quality
+            name: Datenqualität
+          - entity: sensor.aqara_sensor_a_reported_illuminance
+            name: Helligkeit aus der Cloud
+      - type: entities
+        title: Sensor B – zuletzt gemeldet
+        show_header_toggle: false
+        entities:
+          - entity: sensor.aqara_sensor_b_data_quality
+            name: Datenqualität
+          - entity: sensor.aqara_sensor_b_reported_illuminance
+            name: Helligkeit aus der Cloud
