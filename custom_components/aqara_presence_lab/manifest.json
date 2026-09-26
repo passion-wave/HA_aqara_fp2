@@ -1,0 +1,12 @@
+{
+  "domain": "aqara_presence_lab",
+  "name": "Aqara Presence Lab",
+  "codeowners": ["@passion-wave"],
+  "config_flow": true,
+  "documentation": "https://github.com/passion-wave/HA_aqara_fp2",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/passion-wave/HA_aqara_fp2/issues",
+  "requirements": ["cryptography==48.0.1"],
+  "version": "0.1.0b1"
+}

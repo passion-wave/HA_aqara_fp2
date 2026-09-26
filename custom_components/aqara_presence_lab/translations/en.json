@@ -1,0 +1,172 @@
+{
+  "title": "Aqara Presence Lab",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aqara Presence Lab",
+        "description": "Add cloud observations to your local Aqara sensors. Your existing HomeKit connection and automations remain independent. This release includes an offline preview; continuous cloud access requires a reviewed protocol and account identity.",
+        "menu_options": {
+          "offline": "Offline preview",
+          "live": "Check live availability"
+        }
+      },
+      "offline": {
+        "title": "Offline preview — historical examples",
+        "description": "Historical example data from 25 September 2026: Sensor A reported 9 lx, Sensor B 110 lx. Both presence candidates contained the raw code 0; its meaning and freshness are unverified. These examples create no devices, entities or network requests. Coordinates, person count and sleep data are not available."
+      },
+      "credentials": {
+        "title": "Existing session (EU)",
+        "description": "EU only. Enter an existing Aqara session locally and explicitly list device IDs (one per line). No password or automatic login is used. Credentials are stored in Home Assistant configuration; protect administration and backups. A server-validated account identity and reviewed protocol are required before a device read.",
+        "data": {
+          "region": "Region",
+          "token": "Session token",
+          "user_id": "Aqara user ID",
+          "device_ids": "Device IDs"
+        }
+      },
+      "devices": {
+        "title": "Devices and polling",
+        "description": "Select the devices whose cloud responses were received. The interval applies to one shared account batch. Illuminance is the last reported cloud value; it is not a promise of a current physical measurement.",
+        "data": {
+          "device_ids": "Device IDs",
+          "poll_interval": "Polling interval"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Renew session",
+        "description": "The Aqara session needs renewal. Your devices and history remain in place. Enter a session for the same account locally; the existing selection is checked before credentials are replaced.",
+        "data": {
+          "token": "Session token",
+          "user_id": "Aqara user ID"
+        }
+      },
+      "reconfigure": {
+        "title": "Device selection and interval",
+        "description": "Choose device IDs and the shared polling interval. The existing account identity is checked. Existing local HomeKit devices and areas remain independent.",
+        "data": {
+          "device_ids": "Device IDs",
+          "poll_interval": "Polling interval"
+        }
+      }
+    },
+    "error": {
+      "invalid_capture": "The export is incomplete or not a single JSON document. Export it again locally; do not post credentials.",
+      "missing_credentials": "The session is missing required information. Complete the local fields.",
+      "signature_unverified": "This protocol has not passed the required live, identity and subscription tests. Use the offline preview and follow the local validation guide; continuous cloud polling is disabled.",
+      "signature_rejected": "The signed request was rejected. Check the session, protocol profile and clock; repeated logins will not resolve an unverified signature.",
+      "cannot_connect": "Aqara is temporarily unreachable. The integration will respect its retry delay.",
+      "rate_limited": "Aqara is limiting requests. Wait for the shared cooldown before trying again.",
+      "auth_required": "Renew the Aqara session for the configured account.",
+      "account_mismatch": "This session belongs to a different account. Use the configured account; existing devices have not been reassigned.",
+      "no_selected_device_data": "No usable response was received for the selection. Check the device IDs and Aqara app mode.",
+      "freshness_unverified": "A cloud value was reported, but its physical measurement freshness is unverified.",
+      "api_changed": "Aqara returned an unrecognized response. Check the protocol and use the sanitized diagnostic export.",
+      "unsupported_region": "Only the observed EU region is supported. No other regional host will be tried.",
+      "invalid_device_ids": "Enter one to 100 device IDs, one per line, without whitespace inside an ID.",
+      "invalid_interval": "Choose an interval from 60 to 3600 seconds.",
+      "protocol_unsupported": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+    },
+    "abort": {
+      "offline_complete": "Offline preview finished. No devices, entities or connections were created.",
+      "already_configured": "This Aqara account is already configured.",
+      "reauth_successful": "The session was renewed for the same account.",
+      "reconfigure_successful": "The device selection and interval were updated.",
+      "signature_unverified": "This protocol has not passed the required live, identity and subscription tests. Use the offline preview and follow the local validation guide; continuous cloud polling is disabled.",
+      "no_selected_device_data": "No usable response was received for the selection. Check the device IDs and Aqara app mode.",
+      "account_mismatch": "This session belongs to a different account. Use the configured account; existing devices have not been reassigned."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reported_illuminance": {
+        "name": "Last reported illuminance"
+      },
+      "connection_status": {
+        "name": "Connection status",
+        "state": {
+          "ready": "Ready",
+          "retry_wait": "Waiting to retry",
+          "reauth_required": "Session renewal required",
+          "protocol_unsupported": "Protocol not verified",
+          "unconfigured": "Not configured"
+        }
+      },
+      "last_successful_read": {
+        "name": "Last successful read"
+      },
+      "data_quality": {
+        "name": "Data quality",
+        "state": {
+          "unverified": "Unverified",
+          "reported": "Reported; freshness unverified",
+          "current_validated": "Current measurement verified",
+          "missing": "Missing value",
+          "invalid": "Invalid value",
+          "transport_unavailable": "Cloud data unavailable",
+          "stale_confirmed": "Confirmed stale",
+          "clock_anomaly": "Source clock anomaly"
+        }
+      },
+      "presence_raw": {
+        "name": "Presence raw code"
+      },
+      "device_status_raw": {
+        "name": "Device status raw code"
+      },
+      "presence_source_time": {
+        "name": "Presence source timestamp"
+      },
+      "fall_state_raw": {
+        "name": "Fall group raw code"
+      }
+    },
+    "binary_sensor": {
+      "connection_problem": {
+        "name": "Connection problem"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh cloud observations"
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Aqara is temporarily unreachable. The integration will respect its retry delay."
+    },
+    "rate_limited": {
+      "message": "Aqara is limiting requests. Wait for the shared cooldown before trying again."
+    },
+    "auth_required": {
+      "message": "Renew the Aqara session for the configured account."
+    },
+    "api_changed": {
+      "message": "Aqara returned an unrecognized response. Check the protocol and use the sanitized diagnostic export."
+    },
+    "protocol_unsupported": {
+      "message": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+    },
+    "signature_rejected": {
+      "message": "The signed request was rejected. Check the session, protocol profile and clock; repeated logins will not resolve an unverified signature."
+    }
+  },
+  "issues": {
+    "protocol_unsupported": {
+      "title": "Aqara protocol needs validation",
+      "description": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+    },
+    "auth_required": {
+      "title": "Aqara session needs renewal",
+      "description": "Renew the Aqara session for the configured account."
+    },
+    "cannot_connect": {
+      "title": "Aqara cloud connection interrupted",
+      "description": "Aqara is temporarily unreachable. The integration will respect its retry delay."
+    },
+    "freshness_unverified": {
+      "title": "Cloud freshness is not verified",
+      "description": "A cloud value was reported, but its physical measurement freshness is unverified."
+    }
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "title": "Aqara Presence Lab",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aqara Presence Lab",
+        "description": "Ergänzt deine lokalen Aqara-Sensoren um Cloud-Daten. Deine bestehende HomeKit-Verbindung und Automationen bleiben unabhängig. Diese Version enthält eine Offline-Vorschau; fortlaufender Cloud-Zugriff erfordert ein geprüftes Protokoll und eine bestätigte Kontoidentität.",
+        "menu_options": {
+          "offline": "Offline-Vorschau",
+          "live": "Live-Verfügbarkeit prüfen"
+        }
+      },
+      "offline": {
+        "title": "Offline-Vorschau — historische Beispiele",
+        "description": "Historische Beispieldaten vom 25.09.2026: Sensor A meldete 9 lx, Sensor B 110 lx. Beide Präsenzkandidaten enthielten den Rohcode 0; Bedeutung und Aktualität sind ungeprüft. Diese Vorschau erzeugt keine Geräte, Entitäten oder Netzwerkanfragen. Koordinaten, Personenanzahl und Schlafdaten sind nicht verfügbar."
+      },
+      "credentials": {
+        "title": "Vorhandene Sitzung (EU)",
+        "description": "Nur EU. Gib eine vorhandene Aqara-Sitzung lokal ein und wähle Geräte über ihre Kennungen (eine pro Zeile). Passwort und automatische Anmeldung werden nicht verwendet. Zugangsdaten werden in der Home-Assistant-Konfiguration gespeichert; schütze Administration und Backups. Vor einem Geräteabruf müssen Kontoidentität und Protokoll geprüft sein.",
+        "data": {
+          "region": "Region",
+          "token": "Sitzungstoken",
+          "user_id": "Aqara-Benutzerkennung",
+          "device_ids": "Gerätekennungen"
+        }
+      },
+      "devices": {
+        "title": "Geräte und Abfragen",
+        "description": "Wähle die Geräte aus, deren Cloudantworten empfangen wurden. Das Intervall gilt für einen gemeinsamen Kontoabruf. Die Helligkeit ist der zuletzt gemeldete Cloudwert; sie garantiert keine aktuelle physische Messung.",
+        "data": {
+          "device_ids": "Gerätekennungen",
+          "poll_interval": "Abrufintervall"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sitzung erneuern",
+        "description": "Die Aqara-Sitzung muss erneuert werden. Deine Geräte und Aufzeichnungen bleiben bestehen. Gib eine Sitzung desselben Kontos lokal ein; die bestehende Auswahl wird vor dem Austausch der Zugangsdaten geprüft.",
+        "data": {
+          "token": "Sitzungstoken",
+          "user_id": "Aqara-Benutzerkennung"
+        }
+      },
+      "reconfigure": {
+        "title": "Geräteauswahl und Intervall",
+        "description": "Wähle Gerätekennungen und das gemeinsame Abrufintervall. Die vorhandene Kontoidentität wird geprüft. Bestehende lokale HomeKit-Geräte und Bereiche bleiben unabhängig.",
+        "data": {
+          "device_ids": "Gerätekennungen",
+          "poll_interval": "Abrufintervall"
+        }
+      }
+    },
+    "error": {
+      "invalid_capture": "Der Export ist unvollständig oder kein einzelner JSON-Datensatz. Erneut lokal exportieren; keine Zugangsdaten posten.",
+      "missing_credentials": "Die Sitzung enthält nicht alle erforderlichen Angaben. Vervollständige die lokale Eingabe.",
+      "signature_unverified": "Dieses Protokoll hat die erforderlichen Live-, Identitäts- und Subscription-Tests noch nicht bestanden. Nutze die Offline-Vorschau und die Anleitung zur lokalen Prüfung; fortlaufende Cloud-Abfragen sind gesperrt.",
+      "signature_rejected": "Die signierte Anfrage wurde abgelehnt. Sitzung, Protokollprofil und Uhrzeit prüfen; wiederholte Anmeldungen lösen keine ungeprüfte Signatur.",
+      "cannot_connect": "Aqara ist momentan nicht erreichbar. Die Integration hält ihre Wartezeit vor einem erneuten Versuch ein.",
+      "rate_limited": "Aqara begrenzt gerade die Anfragen. Warte die gemeinsame Abrufpause ab.",
+      "auth_required": "Erneuere die Aqara-Sitzung für das eingerichtete Konto.",
+      "account_mismatch": "Diese Sitzung gehört zu einem anderen Konto. Verwende das eingerichtete Konto; bestehende Geräte wurden nicht neu zugeordnet.",
+      "no_selected_device_data": "Für die Auswahl kam keine verwertbare Antwort an. Gerätekennungen und App-Modus prüfen.",
+      "freshness_unverified": "Ein Cloudwert liegt vor; seine Aktualität als physische Messung ist noch nicht bestätigt.",
+      "api_changed": "Die Aqara-Antwort entspricht nicht dem geprüften Format. Protokoll prüfen und bereinigte Diagnose verwenden.",
+      "unsupported_region": "Nur die beobachtete Region EU wird unterstützt. Andere Regionshosts werden nicht ausprobiert.",
+      "invalid_device_ids": "Gib eine bis 100 Gerätekennungen ein, eine pro Zeile, ohne Leerzeichen innerhalb einer Kennung.",
+      "invalid_interval": "Wähle ein Intervall zwischen 60 und 3600 Sekunden.",
+      "protocol_unsupported": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+    },
+    "abort": {
+      "offline_complete": "Offline-Vorschau beendet. Es wurden keine Geräte, Entitäten oder Verbindungen angelegt.",
+      "already_configured": "Dieses Aqara-Konto ist bereits eingerichtet.",
+      "reauth_successful": "Die Sitzung desselben Kontos wurde erneuert.",
+      "reconfigure_successful": "Geräteauswahl und Intervall wurden aktualisiert.",
+      "signature_unverified": "Dieses Protokoll hat die erforderlichen Live-, Identitäts- und Subscription-Tests noch nicht bestanden. Nutze die Offline-Vorschau und die Anleitung zur lokalen Prüfung; fortlaufende Cloud-Abfragen sind gesperrt.",
+      "no_selected_device_data": "Für die Auswahl kam keine verwertbare Antwort an. Gerätekennungen und App-Modus prüfen.",
+      "account_mismatch": "Diese Sitzung gehört zu einem anderen Konto. Verwende das eingerichtete Konto; bestehende Geräte wurden nicht neu zugeordnet."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reported_illuminance": {
+        "name": "Zuletzt gemeldete Helligkeit"
+      },
+      "connection_status": {
+        "name": "Verbindungsstatus",
+        "state": {
+          "ready": "Bereit",
+          "retry_wait": "Warten auf nächsten Versuch",
+          "reauth_required": "Sitzung erneuern",
+          "protocol_unsupported": "Protokoll nicht bestätigt",
+          "unconfigured": "Nicht eingerichtet"
+        }
+      },
+      "last_successful_read": {
+        "name": "Letzter erfolgreicher Abruf"
+      },
+      "data_quality": {
+        "name": "Datenqualität",
+        "state": {
+          "unverified": "Ungeprüft",
+          "reported": "Gemeldet; Aktualität ungeprüft",
+          "current_validated": "Aktuelle Messung bestätigt",
+          "missing": "Wert fehlt",
+          "invalid": "Ungültiger Wert",
+          "transport_unavailable": "Clouddaten nicht verfügbar",
+          "stale_confirmed": "Nachweislich veraltet",
+          "clock_anomaly": "Auffällige Quellenzeit"
+        }
+      },
+      "presence_raw": {
+        "name": "Präsenz-Rohcode"
+      },
+      "device_status_raw": {
+        "name": "Gerätestatus-Rohcode"
+      },
+      "presence_source_time": {
+        "name": "Quellenzeit des Präsenzkandidaten"
+      },
+      "fall_state_raw": {
+        "name": "Rohcode der Sturzgruppe"
+      }
+    },
+    "binary_sensor": {
+      "connection_problem": {
+        "name": "Verbindungsproblem"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Cloudwerte aktualisieren"
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Aqara ist momentan nicht erreichbar. Die Integration hält ihre Wartezeit vor einem erneuten Versuch ein."
+    },
+    "rate_limited": {
+      "message": "Aqara begrenzt gerade die Anfragen. Warte die gemeinsame Abrufpause ab."
+    },
+    "auth_required": {
+      "message": "Erneuere die Aqara-Sitzung für das eingerichtete Konto."
+    },
+    "api_changed": {
+      "message": "Die Aqara-Antwort entspricht nicht dem geprüften Format. Protokoll prüfen und bereinigte Diagnose verwenden."
+    },
+    "protocol_unsupported": {
+      "message": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+    },
+    "signature_rejected": {
+      "message": "Die signierte Anfrage wurde abgelehnt. Sitzung, Protokollprofil und Uhrzeit prüfen; wiederholte Anmeldungen lösen keine ungeprüfte Signatur."
+    }
+  },
+  "issues": {
+    "protocol_unsupported": {
+      "title": "Aqara-Protokoll muss geprüft werden",
+      "description": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+    },
+    "auth_required": {
+      "title": "Aqara-Sitzung erneuern",
+      "description": "Erneuere die Aqara-Sitzung für das eingerichtete Konto."
+    },
+    "cannot_connect": {
+      "title": "Aqara-Cloudverbindung unterbrochen",
+      "description": "Aqara ist momentan nicht erreichbar. Die Integration hält ihre Wartezeit vor einem erneuten Versuch ein."
+    },
+    "freshness_unverified": {
+      "title": "Aktualität der Cloudwerte nicht bestätigt",
+      "description": "Ein Cloudwert liegt vor; seine Aktualität als physische Messung ist noch nicht bestätigt."
+    }
+  }
+}

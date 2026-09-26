@@ -1,0 +1,245 @@
+"""One cloud batch per account, with independent local liveness checking."""
+
+import asyncio
+import logging
+from collections.abc import Callable
+from datetime import datetime, timedelta
+from time import monotonic
+from typing import Any
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.debounce import Debouncer
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .api.auth import SessionAuthProvider, SessionCredentials
+from .api.client import AsyncAqaraClient
+from .api.errors import (
+    AccessDenied,
+    AccountMismatch,
+    ApplicationError,
+    AuthenticationRequired,
+    InvalidResponse,
+    ProtocolUnsupported,
+    RateLimited,
+    RequestRejected,
+    SignatureRejected,
+    TransportError,
+)
+from .api.models import AccountIdentity, AccountSnapshot
+from .api.profiles import PROFILE
+from .api.rate_limit import AccountRateLimiter
+from .api.signing import CandidateSigner
+from .const import (
+    CONF_DEVICE_IDS,
+    CONF_INTERVAL,
+    CONF_REGION,
+    CONF_TOKEN,
+    CONF_USER_ID,
+    DEFAULT_INTERVAL,
+    DOMAIN,
+    REFRESH_COOLDOWN,
+    TRANSPORT_TIMEOUT,
+)
+from .repairs import async_clear_connection_issues, async_set_issue
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def create_client(hass: HomeAssistant, data: dict[str, Any]) -> AsyncAqaraClient:
+    """Use HA's TLS session; the integration never owns or closes it."""
+    if PROFILE.app_key is None:
+        raise ProtocolUnsupported()
+    # Setup retries and config flows must respect a previous server cooldown.
+    # Keep only limiter state, indexed by a hash; never credentials, in hass.data.
+    identity = AccountIdentity(data.get(CONF_REGION, "EU"), data[CONF_USER_ID])
+    limiters = hass.data.setdefault(DOMAIN, {}).setdefault("account_limiters", {})
+    limiter = limiters.setdefault(identity.account_key, AccountRateLimiter())
+    return AsyncAqaraClient(
+        async_get_clientsession(hass),
+        SessionAuthProvider(SessionCredentials(data[CONF_TOKEN], data[CONF_USER_ID])),
+        CandidateSigner(PROFILE.app_key, app_id=PROFILE.app_id),
+        profile=PROFILE,
+        limiter=limiter,
+    )
+
+
+class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
+    """Fetch selected devices together and retain readable connection state."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        client: AsyncAqaraClient,
+        *,
+        clock: Callable[[], float] = monotonic,
+    ) -> None:
+        interval = entry.options.get(CONF_INTERVAL, entry.data.get(CONF_INTERVAL, DEFAULT_INTERVAL))
+        super().__init__(
+            hass,
+            _LOGGER,
+            config_entry=entry,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=interval),
+            request_refresh_debouncer=Debouncer(
+                hass, _LOGGER, cooldown=REFRESH_COOLDOWN, immediate=True
+            ),
+            always_update=True,
+        )
+        self.client = client
+        self.entry = entry
+        self.identity = AccountIdentity(entry.data.get(CONF_REGION, "EU"), entry.data[CONF_USER_ID])
+        self.device_ids = tuple(entry.data[CONF_DEVICE_IDS])
+        self.connection_status = "unconfigured"
+        self.last_successful_read: datetime | None = None
+        self.error_key: str | None = None
+        self.transport_stale = False
+        self._clock = clock
+        self._last_received: float | None = None
+        self._last_attempt: float | None = None
+        self._max_receive_age = 2 * interval + TRANSPORT_TIMEOUT
+        self._stale_timer: asyncio.TimerHandle | None = None
+        self._inflight: asyncio.Task[AccountSnapshot] | None = None
+        self._closed = False
+        self._terminal_error: str | None = None
+
+    @callback
+    def async_start_liveness(self) -> None:
+        """Schedule a local-only check, including while a request is stuck."""
+        if self._closed or self._stale_timer is not None:
+            return
+        self._stale_timer = self.hass.loop.call_later(30, self._async_check_liveness)
+
+    @callback
+    def _async_check_liveness(self) -> None:
+        self._stale_timer = None
+        if self._closed:
+            return
+        if (
+            self._last_received is not None
+            and self._clock() - self._last_received > self._max_receive_age
+        ):
+            if not self.transport_stale:
+                self.transport_stale = True
+                if self._terminal_error is None:
+                    self.connection_status = "retry_wait"
+                    self.error_key = "cannot_connect"
+                    async_set_issue(self.hass, self.entry.entry_id, "cannot_connect")
+                self.async_update_listeners()
+        self.async_start_liveness()
+
+    async def _async_update_data(self) -> AccountSnapshot:
+        """Coalesce concurrent refreshes; never multiply client retry loops."""
+        if self._closed:
+            raise UpdateFailed(translation_domain=DOMAIN, translation_key="cannot_connect")
+        if self._terminal_error is not None:
+            error_type = (
+                ConfigEntryAuthFailed
+                if self.connection_status == "reauth_required"
+                else ConfigEntryError
+            )
+            raise error_type(translation_domain=DOMAIN, translation_key=self._terminal_error)
+        if self._inflight is not None:
+            return await asyncio.shield(self._inflight)
+        if self._last_attempt is not None and self._clock() - self._last_attempt < REFRESH_COOLDOWN:
+            if self.data is not None and self.connection_status == "ready":
+                return self.data
+            raise UpdateFailed(
+                translation_domain=DOMAIN, translation_key=self.error_key or "cannot_connect"
+            )
+        self._last_attempt = self._clock()
+        self._inflight = self.hass.async_create_task(
+            self._async_read_once(), name="Aqara cloud batch"
+        )
+        try:
+            return await self._inflight
+        finally:
+            self._inflight = None
+
+    async def async_request_refresh(self) -> None:
+        """Manual requests join an existing read without scheduling a second one."""
+        if self._inflight is not None:
+            await asyncio.shield(self._inflight)
+            return
+        if self._last_attempt is not None and self._clock() - self._last_attempt < REFRESH_COOLDOWN:
+            return
+        await super().async_request_refresh()
+
+    async def _async_read_once(self) -> AccountSnapshot:
+        try:
+            snapshot = await self.client.async_read_traits(self.device_ids, PROFILE)
+        except AuthenticationRequired as err:
+            self._set_failure("reauth_required", "auth_required")
+            raise ConfigEntryAuthFailed(
+                translation_domain=DOMAIN, translation_key="auth_required"
+            ) from err
+        except (ProtocolUnsupported, AccountMismatch) as err:
+            self._set_failure("protocol_unsupported", "protocol_unsupported")
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="protocol_unsupported"
+            ) from err
+        except RateLimited as err:
+            self._set_failure("retry_wait", "rate_limited")
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="rate_limited",
+                retry_after=getattr(err, "retry_after", None),
+            ) from err
+        except SignatureRejected as err:
+            self._set_failure("protocol_unsupported", "signature_rejected")
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="signature_rejected"
+            ) from err
+        except (AccessDenied, ApplicationError, InvalidResponse, RequestRejected) as err:
+            self._set_failure("protocol_unsupported", "api_changed")
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="api_changed"
+            ) from err
+        except TransportError as err:
+            self._set_failure("retry_wait", "cannot_connect")
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="cannot_connect",
+                retry_after=self.client.limiter.retry_after,
+            ) from err
+        self.connection_status = "ready"
+        self.error_key = None
+        self.transport_stale = False
+        self._last_received = self._clock()
+        self.last_successful_read = snapshot.received_at_utc
+        async_clear_connection_issues(self.hass, self.entry.entry_id)
+        async_set_issue(self.hass, self.entry.entry_id, "freshness_unverified")
+        return snapshot
+
+    @callback
+    def _set_failure(self, status: str, key: str) -> None:
+        self.connection_status = status
+        self.error_key = key
+        if status in ("reauth_required", "protocol_unsupported"):
+            self._terminal_error = key
+            self.update_interval = None
+            self._unschedule_refresh()
+        async_set_issue(
+            self.hass,
+            self.entry.entry_id,
+            "protocol_unsupported" if key in ("api_changed", "signature_rejected") else key,
+        )
+        # Auth errors cause the base coordinator to stop polling; diagnostics still update.
+        self.async_update_listeners()
+
+    async def async_shutdown(self) -> None:
+        """Stop every integration-owned timer and pending read before closing."""
+        if self._closed:
+            return
+        self._closed = True
+        if self._stale_timer is not None:
+            self._stale_timer.cancel()
+            self._stale_timer = None
+        if self._inflight is not None:
+            self._inflight.cancel()
+            await asyncio.gather(self._inflight, return_exceptions=True)
+        await super().async_shutdown()
+        await self.client.async_close()
