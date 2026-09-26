@@ -28,10 +28,16 @@ jobs:
       - run: python scripts/check_repository.py
       - run: pytest --cov --cov-report=term-missing --cov-report=xml --junitxml=test-results/results.xml
       - run: python scripts/build_release.py
+      - name: Save coverage in the run summary
+        run: python -m coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
+        # Optional retention only: an account-wide artifact quota must not
+        # reclassify successful tests. Results also remain in logs/summary.
+        continue-on-error: true
         with:
           name: validation-and-package
+          retention-days: 7
           path: |
             coverage.xml
             test-results/
@@ -52,8 +58,17 @@ jobs:
           tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
       - run: /tmp/gitleaks dir . --redact --no-banner
   hacs:
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
       - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa
         with:
           category: integration
+          comment: false
+  private-distribution:
+    if: ${{ github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain the HACS visibility prerequisite
+        run: |
+          echo 'HACS validation is blocked: HACS cannot download private repositories. All local/package checks still run. Use the ZIP or explicitly approve making the repository public.' >> "$GITHUB_STEP_SUMMARY"

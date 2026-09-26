@@ -9,6 +9,12 @@ ist ausschließlich für den beobachteten EU-Host angelegt.
 
 ## HACS
 
+Voraussetzung ist ein öffentliches Repository: HACS unterstützt
+[keine privaten GitHub-Repositories](https://www.hacs.xyz/docs/faq/private_repositories/).
+Bei privater Sichtbarkeit das Release-ZIP manuell installieren. Die CI überspringt
+die HACS-Remoteprüfung in diesem Fall ausdrücklich und zeigt den Grund an;
+Tests, Hassfest und Secret-Scan laufen weiterhin.
+
 HACS öffnen, Menü **Benutzerdefinierte Repositories**, Repository-URL
 `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
 Anschließend Aqara Presence Lab herunterladen und HA regulär neu starten.
@@ -64,4 +70,3 @@ Backup verwenden. Niemals HomeKit-Pairings, lokale Präsenzsensoren oder Automat
 löschen. Beim Entfernen ausschließlich den Aqara-Presence-Lab-Entry und danach
 das HACS-Paket entfernen. HA verwaltet die Recorder-Historie nach eigener
 Aufbewahrungsregel; diese Integration löscht keine Verlaufsdaten.
-

@@ -41,6 +41,10 @@ durch `0`, `false` oder einen Default ersetzt.
 Voraussetzung für diese Beta: **Home Assistant 2026.9.3**, Python 3.14.
 Diese Version ist die getestete Basis, keine Zusage für ältere Versionen.
 
+**HACS benötigt ein öffentliches Repository.** Solange dieses Repository privat
+ist, steht die manuelle ZIP-Installation zur Verfügung; die HACS-Remoteprüfung
+wird in CI ausdrücklich als gesperrt ausgewiesen.
+
 1. Home-Assistant-Konfiguration sichern.
 2. In HACS unter **Benutzerdefinierte Repositories**
    `https://github.com/passion-wave/HA_aqara_fp2` mit Typ **Integration** hinzufügen.
@@ -85,4 +89,3 @@ Details: [Mitentwickeln](CONTRIBUTING.md), [Datenschutz](SECURITY.md),
 
 Ein unabhängiges Community-Projekt von Passion Wave, nicht von Aqara unterstützt.
 Nutzung als HACS-Custom-Repository bedeutet keine Aufnahme in den HACS-Standardkatalog.
-

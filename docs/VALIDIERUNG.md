@@ -18,14 +18,15 @@ validiert und anschließend mit dem neu implementierten gemeinsamen Kern geprüf
 
 ## Automatisierte Prüfung
 
-Lokaler Abschlusslauf: **306 Tests bestanden**, **93 % Coverage.py-Abdeckung
+Lokaler Abschlusslauf: **321 Tests bestanden**, **93 % Coverage.py-Abdeckung
 einschließlich Verzweigungen**, keine fehlgeschlagenen oder übersprungenen Tests.
 Mypy prüft alle 24 Integrationsmodule; Ruff bestätigt 59 formatierte Python-Dateien.
 Der reproduzierbare ZIP-Build und Gitleaks 8.30.1 sind ebenfalls erfolgreich.
 
 Testumgebung: **Home Assistant 2026.9.3**, **Python 3.14.6**,
 `pytest-homeassistant-custom-component==0.13.366`, `aiohttp==3.14.3`,
-`cryptography==48.0.1`. Lokal macOS; GitHub Actions prüft zusätzlich Linux.
+`cryptography==48.0.1`. Lokal macOS/Python 3.14.6;
+GitHub Actions prüft zusätzlich auf Linux/Python 3.14.7.
 Die verbindlichen Ausführungsergebnisse stehen in der
 [CI dieses Repositorys](https://github.com/passion-wave/HA_aqara_fp2/actions/workflows/ci.yml).
 
@@ -54,6 +55,14 @@ Zusätzliche Prüfungen: Ruff-Lint und Formatierung, Mypy für die komplette
 Integration, `pip check`, Repository-Vertrag, Gitleaks-Secret-Scan und die
 offiziellen Hassfest-/HACS-Actions. Die Gitleaks-Ausnahme betrifft ausschließlich
 die eine verifizierte öffentliche Herstellerkonstante im festgelegten Quelldateipfad.
+
+Hassfest und der Secret-Scan wurden auch auf GitHub erfolgreich ausgeführt.
+Die HACS-Remoteprüfung benötigt ein öffentliches Repository; bei privater
+Sichtbarkeit bleibt sie ausdrücklich gesperrt. Im ersten GitHub-Lauf waren alle
+306 Tests erfolgreich, der zusätzliche Artifact-Upload scheiterte jedoch am
+kontoweiten GitHub-Speicherlimit. Dieser optionale Upload beeinflusst deshalb
+künftig nicht den Teststatus; Coverage bleibt in Logs und Run Summary erhalten.
+Das Release-ZIP wird separat an das GitHub-Release angehängt.
 
 ## Live-Abnahme
 
