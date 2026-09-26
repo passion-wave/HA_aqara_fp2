@@ -1,0 +1,10 @@
+{
+  "app_id": "demo-app",
+  "nonce": "00000000000000000000000000000000",
+  "time_ms": "1700000000000",
+  "body_utf8": "{\"devices\":[],\"needParam\":true}",
+  "app_key": "demo-key",
+  "token": "demo-token",
+  "expected_signature": "55e1c74bbca214902ece1aa35bcc1046",
+  "evidence": "Synthetic formula regression only; NOT a captured or server-validated vector."
+}

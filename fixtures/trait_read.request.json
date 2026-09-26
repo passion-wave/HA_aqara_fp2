@@ -1,0 +1,287 @@
+{
+  "devices": [
+    {
+      "traits": [
+        {
+          "path": "0.128.32901",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32907",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.33013",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32909",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32906",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32912",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.33016",
+          "needSubscribe": true
+        },
+        {
+          "path": "1.147.32969",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33001",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33044",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33000",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33045",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32915",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33108",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32919",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33012",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.154.32989",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32915",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33108",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32919",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33012",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32915",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.33108",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32919",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.33012",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.168.33019",
+          "needSubscribe": true
+        }
+      ],
+      "deviceId": "lumi1.000000000002"
+    },
+    {
+      "traits": [
+        {
+          "path": "0.128.32901",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32907",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.33013",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32909",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32906",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32912",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.33016",
+          "needSubscribe": true
+        },
+        {
+          "path": "1.147.32969",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33001",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33044",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33000",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33045",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32915",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33108",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32919",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33012",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.128.32901",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32907",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.33013",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32909",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32906",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32912",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.33016",
+          "needSubscribe": true
+        },
+        {
+          "path": "1.147.32969",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.154.32989",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32913",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32915",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33108",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32919",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33012",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "needSubscribe": true
+        }
+      ],
+      "deviceId": "lumi1.000000000001"
+    }
+  ],
+  "needParam": true
+}

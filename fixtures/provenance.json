@@ -1,0 +1,47 @@
+{
+  "source": "Vom Nutzer am 2026-09-26 eingefügter Proxyman-Mitschnitt; manuell rekonstruiert",
+  "fixture_version": 1,
+  "wire_exact": false,
+  "pseudonymised": true,
+  "capture_header_time_ms": 1790355356562,
+  "capture_header_time_berlin": "2026-09-25T18:55:56.562+02:00",
+  "endpoint": {
+    "method": "POST",
+    "host": "rpc-ger.aqara.com",
+    "path": "/app/v1.0/lumi/app/qlink/trait/read"
+  },
+  "observed_app_version": "6.4.1",
+  "observed_area": "EU",
+  "public_app_id": "7be1984f0556276133336839",
+  "removed": [
+    "Cookie",
+    "PhoneId",
+    "Userid",
+    "Clientid",
+    "voipDeviceToken",
+    "Device-Token",
+    "Token",
+    "Sign",
+    "Nonce",
+    "original deviceId",
+    "original positionId",
+    "original names",
+    "original requestId"
+  ],
+  "reconstruction_notes": [
+    "Doppelt eingefügte Antwort auf einen eindeutigen Datensatz reduziert.",
+    "HTML-Leerzeichen und darstellungsbedingte Unterstrich-Escapes manuell bereinigt.",
+    "JSON-String-Werte für enums und Wertelisten bleiben Strings.",
+    "Request-Reihenfolge und doppelte Trait-Pfade erhalten.",
+    "Keine Original-Body-Bytes: kein gültiger Signatur-Testvektor."
+  ],
+  "request_trait_counts": {
+    "sensor_a": 37,
+    "sensor_b": 31
+  },
+  "response_trait_counts": {
+    "sensor_a": 20,
+    "sensor_b": 25
+  },
+  "live_validated": false
+}

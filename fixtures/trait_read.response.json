@@ -1,0 +1,352 @@
+{
+  "result": [
+    {
+      "traits": [
+        {
+          "path": "2.130.32915",
+          "defaultValue": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32913",
+          "defaultValue": "MotionSensor",
+          "value": "Anwesenheitssensor",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32919",
+          "enums": "[\"presence_detector\"]",
+          "defaultValue": "presence_detector",
+          "value": "presence_detector",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32919",
+          "enums": "[\"illumination\"]",
+          "defaultValue": "illumination",
+          "value": "illumination",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.154.32989",
+          "unit": "lux",
+          "min": 0.0,
+          "max": 83000.0,
+          "traitTime": 1790354656410,
+          "step": 10.0,
+          "value": "9",
+          "propertyId": [
+            "0.4.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "value": "real2.0000000000000000001",
+          "propertyId": [
+            "8.0.8108"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32913",
+          "defaultValue": "人体存在传感器",
+          "value": "Praesenzsensor A",
+          "propertyId": [
+            "8.0.8101"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32915",
+          "defaultValue": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.128.32901",
+          "enums": "[\"0\",\"1\"]",
+          "value": 1,
+          "propertyId": [
+            "8.0.2045"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.33016",
+          "value": "Raum A",
+          "propertyId": [
+            "8.0.8102"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32913",
+          "value": "Beleuchtungsstärke",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.33013",
+          "defaultValue": "[0,1,2,3,4,5,6]",
+          "traitTime": 1737823004988,
+          "value": "[4,6]",
+          "propertyId": [
+            "14.49.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33001",
+          "enums": "[\"0\",\"1\",\"2\",\"3\"]",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33045",
+          "unit": "ms",
+          "min": 0.0,
+          "max": 604800000.0,
+          "step": 1.0,
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33012",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33000",
+          "enums": "[\"0\",\"1\"]",
+          "traitTime": 1737821236919,
+          "value": "0",
+          "propertyId": [
+            "3.51.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33044",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33012",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32906",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32907",
+          "defaultValue": "31",
+          "value": "31",
+          "needSubscribe": true
+        }
+      ],
+      "positionId": "real2.0000000000000000001",
+      "deviceModel": "lumi.motion.agl001",
+      "deviceId": "lumi1.000000000001"
+    },
+    {
+      "traits": [
+        {
+          "path": "5.130.33012",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.33016",
+          "value": "Raum B",
+          "propertyId": [
+            "8.0.8102"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32913",
+          "defaultValue": "Attitude_x005f_x0001_Detector",
+          "value": "Sturzüberwachung",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33001",
+          "enums": "[\"0\",\"1\",\"2\",\"3\"]",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33045",
+          "unit": "ms",
+          "min": 0.0,
+          "max": 604800000.0,
+          "step": 1.0,
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32915",
+          "defaultValue": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33000",
+          "enums": "[\"0\",\"1\"]",
+          "traitTime": 1790332365586,
+          "value": "0",
+          "propertyId": [
+            "3.51.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "2.160.33044",
+          "value": 3731446,
+          "needSubscribe": true
+        },
+        {
+          "path": "5.130.32919",
+          "enums": "[\"fall_down\"]",
+          "defaultValue": "fall_down",
+          "value": "fall_down",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32906",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.32907",
+          "defaultValue": "31",
+          "value": "31",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32915",
+          "defaultValue": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32913",
+          "defaultValue": "MotionSensor",
+          "value": "Occupancy Sensor",
+          "needSubscribe": true
+        },
+        {
+          "path": "5.168.33019",
+          "enums": "[\"0\",\"1\",\"2\"]",
+          "unit": "",
+          "defaultValue": "0",
+          "traitTime": 1684265219105,
+          "value": "0",
+          "propertyId": [
+            "4.31.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.32919",
+          "enums": "[\"presence_detector\"]",
+          "defaultValue": "presence_detector",
+          "value": "presence_detector",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32919",
+          "enums": "[\"illumination\"]",
+          "defaultValue": "illumination",
+          "value": "illumination",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.154.32989",
+          "unit": "lux",
+          "min": 0.0,
+          "max": 83000.0,
+          "traitTime": 1790355274126,
+          "step": 10.0,
+          "value": "110",
+          "propertyId": [
+            "0.4.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32914",
+          "value": "real2.0000000000000000002",
+          "propertyId": [
+            "8.0.8108"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "0.130.32913",
+          "defaultValue": "人体存在传感器",
+          "value": "Praesenzsensor B",
+          "propertyId": [
+            "8.0.8101"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32915",
+          "defaultValue": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.128.32901",
+          "enums": "[\"0\",\"1\"]",
+          "value": 1,
+          "propertyId": [
+            "8.0.2045"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.32913",
+          "value": "Illuminance",
+          "needSubscribe": true
+        },
+        {
+          "path": "0.129.33013",
+          "defaultValue": "[0,1,2,3,4,5,6]",
+          "traitTime": 1693004666931,
+          "value": "[2,4,202,102,101,201,203]",
+          "propertyId": [
+            "14.49.85"
+          ],
+          "needSubscribe": true
+        },
+        {
+          "path": "2.130.33012",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        },
+        {
+          "path": "4.130.33012",
+          "enums": "[\"0\",\"1\"]",
+          "defaultValue": "1",
+          "value": "1",
+          "needSubscribe": true
+        }
+      ],
+      "positionId": "real2.0000000000000000002",
+      "deviceModel": "lumi.motion.agl001",
+      "deviceId": "lumi1.000000000002"
+    }
+  ],
+  "code": 0,
+  "requestId": "REDACTED_REQUEST_ID",
+  "message": "Success",
+  "msgDetails": "Success"
+}
