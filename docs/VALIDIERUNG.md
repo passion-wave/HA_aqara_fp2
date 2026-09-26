@@ -57,6 +57,12 @@ offiziellen Hassfest-/HACS-Actions. Die Gitleaks-Ausnahme betrifft ausschließli
 die eine verifizierte öffentliche Herstellerkonstante im festgelegten Quelldateipfad.
 
 Hassfest und der Secret-Scan wurden auch auf GitHub erfolgreich ausgeführt.
+Auch `hacs.json` und `manifest.json` bestehen die **unveränderten offiziellen
+HACS-Schemas** aus Commit `adb7d83e33d24325535fb43b8226572405143757` von
+[`hacs/integration`](https://github.com/hacs/integration/blob/adb7d83e33d24325535fb43b8226572405143757/custom_components/hacs/utils/validate.py).
+Der bereinigte Schema-Prüfbericht ist dem Beta-Release beigefügt. Der
+[finale GitHub-CI-Lauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36266205069)
+bestätigt alle 321 Tests, Hassfest, Linting, Typprüfung und Secret-Scan.
 Die HACS-Remoteprüfung benötigt ein öffentliches Repository; bei privater
 Sichtbarkeit bleibt sie ausdrücklich gesperrt. Im ersten GitHub-Lauf waren alle
 306 Tests erfolgreich, der zusätzliche Artifact-Upload scheiterte jedoch am
