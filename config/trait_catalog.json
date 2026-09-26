@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "source": "pseudonymised_capture:2026-09-25",
+  "notes": [
+    "Not returned does not mean unsupported.",
+    "No enum mappings, person coordinates, or counts have been validated."
+  ],
+  "traits": [
+    {
+      "path": "0.128.32901",
+      "key": "device_status_raw",
+      "semantic_status": "candidate",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "8.0.2045"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.129.32906",
+      "key": "unknown_device_metadata",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.129.32907",
+      "key": "unknown_device_metadata",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.129.32909",
+      "key": "unreturned_trait",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.129.32912",
+      "key": "unreturned_trait",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.129.33013",
+      "key": "unknown_code_list",
+      "semantic_status": "unknown",
+      "decoder": "json_list",
+      "unit": null,
+      "property_ids": [
+        "14.49.85"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.130.32913",
+      "key": "device_name",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "8.0.8101"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.130.32914",
+      "key": "opaque_position_reference",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "8.0.8108"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "0.130.33016",
+      "key": "room_name",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "8.0.8102"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "1.147.32969",
+      "key": "unreturned_trait",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.130.32913",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.130.32915",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.130.32919",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.130.33012",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.130.33108",
+      "key": "group_metadata",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.160.33000",
+      "key": "presence_raw",
+      "semantic_status": "candidate",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "3.51.85"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.160.33001",
+      "key": "unknown_enum",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.160.33044",
+      "key": "unknown_number",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "2.160.33045",
+      "key": "unknown_time_field",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": "ms",
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.130.32913",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.130.32915",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.130.32919",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.130.33012",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.130.33108",
+      "key": "group_metadata",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "4.154.32989",
+      "key": "reported_illuminance",
+      "semantic_status": "observed",
+      "decoder": "number",
+      "unit": "lx",
+      "property_ids": [
+        "0.4.85"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.130.32913",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.130.32915",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.130.32919",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.130.33012",
+      "key": "group_metadata",
+      "semantic_status": "observed",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.130.33108",
+      "key": "group_metadata",
+      "semantic_status": "unknown",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [],
+      "observed_in_capture": false,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    },
+    {
+      "path": "5.168.33019",
+      "key": "fall_state_raw",
+      "semantic_status": "candidate",
+      "decoder": "raw",
+      "unit": null,
+      "property_ids": [
+        "4.31.85"
+      ],
+      "observed_in_capture": true,
+      "time_semantics": "unverified",
+      "presence_mapping": null
+    }
+  ]
+}

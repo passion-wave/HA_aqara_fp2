@@ -1,0 +1,37 @@
+[project]
+name = "aqara-presence-lab"
+version = "0.1.0b1"
+description = "Evidence-driven Aqara FP2 cloud research integration for Home Assistant"
+requires-python = ">=3.14"
+license = "MIT"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --disable-socket --allow-unix-socket"
+markers = ["live: explicitly authorized local live tests (never standard CI)"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.14"
+files = ["custom_components/aqara_presence_lab"]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true
+
+[tool.coverage.run]
+source = ["custom_components/aqara_presence_lab"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true

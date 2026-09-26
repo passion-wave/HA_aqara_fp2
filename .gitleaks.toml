@@ -1,0 +1,16 @@
+title = "Aqara Presence Lab secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated environments and test/build outputs are not project source"
+paths = ['''(^|/)\.venv[^/]*/''', '''(^|/)\.git/''', '''(^|/)(dist|htmlcov|test-results|__pycache__)/''']
+
+[[allowlists]]
+description = "Public manufacturer app key, verified in MIT SleepRadar blob b48a4417deebd04cf4e6b3eb3d918300e6081d25; not an account credential"
+condition = "AND"
+paths = ['''(^|/)custom_components/aqara_presence_lab/api/protocol_constants\.py$''']
+regexTarget = "line"
+regexes = ['''^EU_APP_KEY = ["']Jddz01kIORDYrBzqGYgpUXKBnIHfW8E3["']$''']
+
