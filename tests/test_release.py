@@ -26,6 +26,8 @@ def test_release_is_reproducible_and_contains_only_runtime_files():
             "__pycache__" not in p and "/private/" not in p and "/captures/" not in p for p in paths
         )
         assert prefix + "brand/icon.png" in paths
+        assert prefix + "LICENSE.txt" in paths
+        assert prefix + "api/SleepRadar-LICENSE.txt" in paths
         manifest = json.loads(archive.read(prefix + "manifest.json"))
         assert manifest["domain"] == "aqara_presence_lab"
         assert manifest["version"] == "0.1.0b1"
