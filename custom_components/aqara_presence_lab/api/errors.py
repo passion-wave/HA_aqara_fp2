@@ -59,6 +59,22 @@ class ApplicationError(RequestRejected):
         super().__init__()
 
 
+class SessionExpired(ApplicationError, AuthenticationRequired):
+    """Only emitted for a profile-specific, observed expiry response."""
+
+    error_key = "auth_required"
+
+
+class LoginRejected(ApplicationError, AuthenticationRequired):
+    """Login/MFA rejection requiring manual action, with safe numeric metadata."""
+
+    error_key = "auth_required"
+
+
+class SessionPersistenceError(AqaraError):
+    error_key = "session_persistence_failed"
+
+
 class RateLimited(TransportError):
     error_key = "rate_limited"
 

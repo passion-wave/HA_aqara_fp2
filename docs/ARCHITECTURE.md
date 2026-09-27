@@ -5,7 +5,10 @@ flowchart LR
     FP2[Aqara FP2] --> HK[Lokale HomeKit-Anbindung]
     HK --> Existing[Bestehende HA-Entitäten]
     FP2 --> Cloud[Aqara EU Cloud]
-    Cloud --> Transport[Async-Transport und AuthProvider]
+    Secrets[Lokale secrets.yaml] --> Account[Kontoclient und Neuanmeldung]
+    Session[Privater Sitzungsspeicher] --> Account
+    Account --> Transport[Async-Transport]
+    Cloud --> Transport
     Transport --> Parser[Strikter gemeinsamer Parser]
     Parser --> Snapshot[Account- und Geräte-Snapshots]
     Snapshot --> Coordinator[Ein Coordinator pro Konto]
@@ -42,12 +45,22 @@ zusammengeführt. Laufzeitobjekte liegen in `ConfigEntry.runtime_data`; beim
 Entladen werden eigene Listener, Timer und Tasks entfernt. Framework-Sessions
 gehören HA und werden vom Client nicht geschlossen.
 
-## Protokollfreigabe
+## Anmeldung und experimenteller Betrieb
 
-Das ausgelieferte Profil ist ein Kandidat. UI und Transport prüfen die Freigabe
-jeweils selbst. Ein manuell gesetztes Konfigurations-Boolean ist kein Nachweis.
-Der lokale Signaturvergleich bestätigt ausschließlich die Berechnung zu einem
-Capture; eine einzelne Probe bestätigt weder Kontobindung noch Dauerbetrieb.
-Automatische Anmeldung, Präsenzmapping und neue Datenkanäle benötigen weitere
-unabhängige Nachweise. [Live-Gates](ROADMAP.md) bleiben ausdrücklich offen.
+Das ausgelieferte Profil bleibt ein Kandidat. Version 0.2.0b1 ergänzt auf
+ausdrücklichen Nutzerauftrag einen bewusst aktivierten experimentellen
+Anmeldeweg, ohne dadurch Live-Gates als bestanden zu markieren. Login und
+serverseitig bestätigte Benutzerkennung erlauben die Kontoprüfung; erst ein
+vollständiger Geräteabruf und erfolgreiche lokale Speicherung übernehmen eine
+neue Sitzung dauerhaft. Ungeprüfte Tokenimporte sind keine Kontoidentität.
 
+Die Zugangsdatenverwaltung löst Secret-Referenzen lokal auf. Der Kontoclient
+koordiniert Login, Geräteprüfung, Sitzungsspeicherung und Wiederanmeldung.
+Alle Aufrufe teilen den Kontolimiter; parallele Anforderungen teilen einen
+laufenden Anmeldevorgang. Abgelehnte Anmeldungen benötigen Benutzerhilfe;
+vorübergehende Transportfehler dürfen nach dem gemeinsamen Backoff erneut
+versucht werden. Tokenwechsel ändern weder Geräte- noch Entitätskennungen.
+
+Ein lokaler Signaturvergleich oder eine erfolgreiche Einrichtung beweist keinen
+24-Stunden-Betrieb und keine Präsenzsemantik. Die [Live-Gates](ROADMAP.md) bleiben
+als separate Nachweise dokumentiert.

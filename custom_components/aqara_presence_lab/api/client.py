@@ -7,21 +7,35 @@ import secrets
 import ssl
 import zlib
 from collections.abc import Iterable
+from dataclasses import replace
+from uuid import uuid4
 
 import aiohttp
 
-from .auth import AuthProvider, SessionCredentials, encrypt_password, parse_login_response
+from .auth import (
+    AuthProvider,
+    SessionAuthProvider,
+    SessionCredentials,
+    _credential,
+    encrypt_password,
+    parse_login_response,
+)
 from .errors import (
     AccessDenied,
     ApplicationError,
+    AqaraError,
+    AuthenticationRequired,
     InvalidResponse,
+    LoginRejected,
     ProtocolUnsupported,
     RateLimited,
     RequestRejected,
     ResponseTooLarge,
+    SessionExpired,
     TransportError,
 )
 from .importers import HOST, MAX_BODY_BYTES, PATH, ImportedCapture, request_paths, strict_json
+from .logging import log_event
 from .models import AccountIdentity, AccountSnapshot
 from .parsing import parse_response
 from .profiles import EU_CANDIDATE_PROFILE, ProtocolProfile
@@ -37,29 +51,41 @@ class AsyncAqaraClient:
     def __init__(
         self,
         session: aiohttp.ClientSession,
-        auth: AuthProvider,
+        auth: AuthProvider | None,
         signer: CandidateSigner,
         *,
         profile: ProtocolProfile = EU_CANDIDATE_PROFILE,
         clock: SystemClock | None = None,
         limiter: AccountRateLimiter | None = None,
         own_session: bool = False,
+        live_consent: bool = False,
     ) -> None:
         self._session, self._auth, self._signer = session, auth, signer
         self.profile = profile
         self.clock = clock or SystemClock()
         self.limiter = limiter or AccountRateLimiter(clock=self.clock)
         self._own_session = own_session
+        self._live_consent = live_consent is True
         self._read_task: asyncio.Task | None = None
         self._read_key: tuple | None = None
         self._closed = False
         self._previous: AccountSnapshot | None = None
 
+    def set_session(self, credentials: SessionCredentials | None) -> None:
+        """The account facade owns candidate installation and persistence."""
+        self._auth = SessionAuthProvider(credentials) if credentials is not None else None
+
+    def _require_runtime(self, profile: ProtocolProfile) -> None:
+        if self._live_consent:
+            profile.require_experimental_login()
+        else:
+            profile.require_production_ready()
+
     async def async_read_traits(
         self, device_ids: Iterable[str], profile: ProtocolProfile | None = None
     ) -> AccountSnapshot:
         profile = profile or self.profile
-        profile.require_production_ready()
+        self._require_runtime(profile)
         ids = tuple(dict.fromkeys(device_ids))
         if not ids or len(ids) > 100 or any(not isinstance(x, str) or not x for x in ids):
             raise InvalidResponse()
@@ -96,6 +122,8 @@ class AsyncAqaraClient:
             raise ProtocolUnsupported()
         requested_paths = request_paths(body)
         started = self.clock.now()
+        if self._auth is None:
+            raise AuthenticationRequired()
         credentials = await self._auth.async_credentials()
         payload = await self._post(profile.trait_read_path, body, credentials, profile)
         snapshot = parse_response(
@@ -121,12 +149,12 @@ class AsyncAqaraClient:
 
         if not consent or not signature_matches(capture, self._signer, self.profile):
             raise ProtocolUnsupported()
-        if capture.credentials != await self._auth.async_credentials():
+        if self._auth is None or capture.credentials != await self._auth.async_credentials():
             raise ProtocolUnsupported()
         return await self._read_body(capture.body, self.profile)
 
     async def async_validate_credentials(self) -> AccountIdentity:
-        self.profile.require_production_ready()
+        self._require_runtime(self.profile)
         # Trait reads alone do not establish that the supplied Userid belongs to
         # the token. A future reviewed identity adapter must replace this block.
         raise ProtocolUnsupported("identity_unverified")
@@ -134,14 +162,21 @@ class AsyncAqaraClient:
     async def async_login(
         self, account: str, password: str, *, consent: bool = False
     ) -> SessionCredentials:
-        self.profile.require_production_ready()
+        self._require_runtime(self.profile)
         if not consent or not self.profile.public_rsa_key or self.profile.login_path != LOGIN_PATH:
             raise ProtocolUnsupported()
+        _credential(account)
         encrypted = encrypt_password(password, self.profile.public_rsa_key)
         body = serialize_body({"account": account, "encryptType": 2, "password": encrypted})
-        payload = await self._post(self.profile.login_path, body, None, self.profile)
-        # Caller must verify identity+selected-device read before atomic install.
-        return parse_login_response(payload)
+        try:
+            payload = await self._post(self.profile.login_path, body, None, self.profile)
+            # Caller must verify identity+selected-device read before atomic install.
+            result = parse_login_response(payload)
+        except AuthenticationRequired:
+            raise
+        except InvalidResponse, RequestRejected:
+            raise AuthenticationRequired() from None
+        return replace(result, sys_type="1")
 
     async def _post(
         self,
@@ -172,11 +207,28 @@ class AsyncAqaraClient:
             "Nonce": nonce,
             "Accept-Encoding": "gzip",
         }
+        if path == LOGIN_PATH or (credentials and credentials.sys_type == "1"):
+            headers.update(
+                {
+                    "Sys-Type": "1",
+                    "Lang": "en",
+                    "User-Agent": "pyAqara/1.0.0",
+                    "PhoneId": str(uuid4()).upper(),
+                }
+            )
+        if path == LOGIN_PATH:
+            headers["App-Version"] = profile.login_app_version
         if credentials:
             headers.update({"Token": credentials.token, "Userid": credentials.user_id})
+            if credentials.sys_type is not None:
+                headers["Sys-Type"] = credentials.sys_type
         headers["Sign"] = self._signer.sign(
             body, nonce=nonce, time_ms=timestamp, token=credentials.token if credentials else None
         )
+        started = self.clock.monotonic()
+        status = None
+        operation = "login" if path == LOGIN_PATH else "trait_read"
+        log_event("request_started", operation=operation)
         try:
             async with self._session.post(
                 f"https://{HOST}{path}",
@@ -204,13 +256,36 @@ class AsyncAqaraClient:
                 if type(payload.get("code")) is not int:
                     raise InvalidResponse()
                 if payload["code"] != 0:
+                    if path == LOGIN_PATH:
+                        raise LoginRejected(payload["code"], http_status=status)
+                    if profile.is_confirmed_expiry(path, payload["code"]):
+                        raise SessionExpired(payload["code"], http_status=status)
                     raise ApplicationError(payload["code"], http_status=status)
                 self.limiter.success()
+                log_event(
+                    "request_succeeded",
+                    http_status=status,
+                    elapsed=self.clock.monotonic() - started,
+                    operation=operation,
+                )
                 return payload
         except asyncio.CancelledError:
+            log_event("request_cancelled", http_status=status, operation=operation)
+            raise
+        except AqaraError as error:
+            log_event(
+                "request_failed",
+                error=error,
+                http_status=status,
+                elapsed=self.clock.monotonic() - started,
+                operation=operation,
+            )
             raise
         except aiohttp.ClientError, TimeoutError, OSError, ssl.SSLError:
             self.limiter.failure()
+            log_event(
+                "request_failed", error=TransportError(), http_status=status, operation=operation
+            )
             raise TransportError() from None
 
     @staticmethod

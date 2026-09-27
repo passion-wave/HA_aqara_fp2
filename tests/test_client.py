@@ -307,8 +307,8 @@ async def test_unload_cancels_owned_read_and_releases_response():
 @pytest.mark.parametrize(
     ("body", "error"),
     [
-        (b'{"code":654321,"message":"private-token"}', ApplicationError),
-        (b'{"code":0,"result":"private-token"}', InvalidResponse),
+        (b'{"code":654321,"message":"private-token"}', None),
+        (b'{"code":0,"result":"private-token"}', None),
         (b'{"code":0,"result":{"token":null,"userId":"private-user"}}', None),
     ],
 )

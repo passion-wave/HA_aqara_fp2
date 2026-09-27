@@ -13,9 +13,12 @@ from custom_components.aqara_presence_lab.const import DOMAIN
 INTEGRATION = "custom_components.aqara_presence_lab"
 
 
-async def test_real_candidate_setup_stays_closed(hass, aqara_entry):
+async def test_missing_consent_never_calls_cloud(hass, aqara_entry):
     aqara_entry.add_to_hass(hass)
-    with patch(f"{INTEGRATION}.create_client") as client:
+    hass.config_entries.async_update_entry(
+        aqara_entry, data={**aqara_entry.data, "allow_experimental_cloud": False}
+    )
+    with patch("custom_components.aqara_presence_lab.coordinator.AsyncAqaraClient") as client:
         assert not await hass.config_entries.async_setup(aqara_entry.entry_id)
     await hass.async_block_till_done()
     assert aqara_entry.state == ConfigEntryState.SETUP_ERROR
@@ -29,8 +32,7 @@ async def test_setup_unload_reload_no_homekit_changes(hass, aqara_entry, aqara_c
         "binary_sensor.existing_homekit_presence", "on", {"friendly_name": "Local presence"}
     )
     with (
-        patch(f"{INTEGRATION}.require_production"),
-        patch(f"{INTEGRATION}.create_client", return_value=aqara_client),
+        patch(f"{INTEGRATION}.async_create_entry_client", return_value=aqara_client),
     ):
         assert await hass.config_entries.async_setup(aqara_entry.entry_id)
         await hass.async_block_till_done()
@@ -77,8 +79,7 @@ async def test_startup_failure_classification(hass, aqara_entry, aqara_client, e
     aqara_entry.add_to_hass(hass)
     aqara_client.async_validate_credentials.side_effect = error
     with (
-        patch(f"{INTEGRATION}.require_production"),
-        patch(f"{INTEGRATION}.create_client", return_value=aqara_client),
+        patch(f"{INTEGRATION}.async_create_entry_client", return_value=aqara_client),
     ):
         assert not await hass.config_entries.async_setup(aqara_entry.entry_id)
         await hass.async_block_till_done()
@@ -91,8 +92,7 @@ async def test_first_read_failure_is_retry_not_fake_cached_data(hass, aqara_entr
     aqara_entry.add_to_hass(hass)
     aqara_client.async_read_traits.side_effect = TransportError()
     with (
-        patch(f"{INTEGRATION}.require_production"),
-        patch(f"{INTEGRATION}.create_client", return_value=aqara_client),
+        patch(f"{INTEGRATION}.async_create_entry_client", return_value=aqara_client),
     ):
         assert not await hass.config_entries.async_setup(aqara_entry.entry_id)
     assert aqara_entry.state == ConfigEntryState.SETUP_RETRY
@@ -104,9 +104,9 @@ async def test_schema_version_guard(hass, aqara_entry):
     assert await async_migrate_entry(hass, aqara_entry)
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-    future = MockConfigEntry(domain=DOMAIN, version=2)
+    future = MockConfigEntry(domain=DOMAIN, version=3)
     assert not await async_migrate_entry(hass, future)
-    future_minor = MockConfigEntry(domain=DOMAIN, version=1, minor_version=2)
+    future_minor = MockConfigEntry(domain=DOMAIN, version=1, minor_version=3)
     assert not await async_migrate_entry(hass, future_minor)
 
 
@@ -116,8 +116,7 @@ async def test_unclassified_access_denial_stops_setup_retry(hass, aqara_entry, a
     aqara_entry.add_to_hass(hass)
     aqara_client.async_read_traits.side_effect = AccessDenied()
     with (
-        patch(f"{INTEGRATION}.require_production"),
-        patch(f"{INTEGRATION}.create_client", return_value=aqara_client),
+        patch(f"{INTEGRATION}.async_create_entry_client", return_value=aqara_client),
     ):
         assert not await hass.config_entries.async_setup(aqara_entry.entry_id)
     assert aqara_entry.state == ConfigEntryState.SETUP_ERROR
@@ -127,8 +126,7 @@ async def test_unclassified_access_denial_stops_setup_retry(hass, aqara_entry, a
 async def test_invalid_local_session_requests_reauth(hass, aqara_entry):
     aqara_entry.add_to_hass(hass)
     with (
-        patch(f"{INTEGRATION}.require_production"),
-        patch(f"{INTEGRATION}.create_client", side_effect=AuthenticationRequired()),
+        patch(f"{INTEGRATION}.async_create_entry_client", side_effect=AuthenticationRequired()),
     ):
         assert not await hass.config_entries.async_setup(aqara_entry.entry_id)
     assert aqara_entry.state == ConfigEntryState.SETUP_ERROR
@@ -136,3 +134,37 @@ async def test_invalid_local_session_requests_reauth(hass, aqara_entry):
     assert any(
         flow["context"]["source"] == "reauth" for flow in hass.config_entries.flow.async_progress()
     )
+
+
+async def test_legacy_token_entry_migration_removes_secret_and_requires_login(hass):
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.aqara_presence_lab.api.models import AccountIdentity
+
+    old = MockConfigEntry(
+        domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        unique_id=AccountIdentity("EU", "synthetic-user").account_key,
+        data={
+            "region": "EU",
+            "user_id": "synthetic-user",
+            "token": "legacy-private-token",
+            "device_ids": ["lumi1.000000000001"],
+            "poll_interval": 300,
+        },
+    )
+    old.add_to_hass(hass)
+    with patch("custom_components.aqara_presence_lab.coordinator.AsyncAqaraClient") as network:
+        assert await async_migrate_entry(hass, old)
+        assert old.version == 2 and old.minor_version == 1
+        assert "token" not in old.data
+        assert old.data["allow_experimental_cloud"] is False
+        assert old.unique_id == AccountIdentity("EU", "synthetic-user").account_key
+        assert not await hass.config_entries.async_setup(old.entry_id)
+        await hass.async_block_till_done()
+        assert any(
+            flow["context"]["source"] == "reauth"
+            for flow in hass.config_entries.flow.async_progress()
+        )
+        network.assert_not_called()

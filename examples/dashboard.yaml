@@ -1,4 +1,4 @@
-# Beispiel für einen später freigegebenen Livebetrieb. Alle Entity-IDs sind Platzhalter.
+# Beispiel nach erfolgreicher Anmeldung. Alle Entity-IDs sind Platzhalter.
 title: Aqara Zusatzdaten
 views:
   - title: Übersicht

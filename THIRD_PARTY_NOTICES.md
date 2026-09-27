@@ -2,7 +2,7 @@
 
 Aqara Presence Lab independently implements the protocol described in the supplied specification. It does not vendor the SleepRadar poller.
 
-The two public manufacturer constants in `custom_components/aqara_presence_lab/api/protocol_constants.py` were checked against **SleepRadar**, copyright (c) 2026 Florian Horner, distributed under the MIT License. Its full license is reproduced in [docs/licenses/SleepRadar-MIT.txt](docs/licenses/SleepRadar-MIT.txt).
+The login contract, password preparation, signing format and two public manufacturer constants in `custom_components/aqara_presence_lab/api/protocol_constants.py` were checked against **SleepRadar**, copyright (c) 2026 Florian Horner, distributed under the MIT License. Its full license is reproduced in [docs/licenses/SleepRadar-MIT.txt](docs/licenses/SleepRadar-MIT.txt).
 
 Source file: `aqara_fp2_sleep/aqara_fp2_sleep_poller.py` in `florianhorner/ha-fp2-sleep`.
 

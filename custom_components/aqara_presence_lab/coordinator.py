@@ -2,10 +2,10 @@
 
 import asyncio
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
+from hashlib import sha256
 from time import monotonic
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -14,7 +14,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api.auth import SessionAuthProvider, SessionCredentials
+from .api.account import ManagedAqaraClient
+from .api.auth import SessionCredentials
 from .api.client import AsyncAqaraClient
 from .api.errors import (
     AccessDenied,
@@ -25,6 +26,7 @@ from .api.errors import (
     ProtocolUnsupported,
     RateLimited,
     RequestRejected,
+    SessionPersistenceError,
     SignatureRejected,
     TransportError,
 )
@@ -33,36 +35,87 @@ from .api.profiles import PROFILE
 from .api.rate_limit import AccountRateLimiter
 from .api.signing import CandidateSigner
 from .const import (
+    CONF_ACCOUNT_SECRET,
+    CONF_CONSENT,
     CONF_DEVICE_IDS,
     CONF_INTERVAL,
+    CONF_PASSWORD_SECRET,
     CONF_REGION,
-    CONF_TOKEN,
+    CONF_SESSION_STORE_ID,
     CONF_USER_ID,
     DEFAULT_INTERVAL,
     DOMAIN,
     REFRESH_COOLDOWN,
     TRANSPORT_TIMEOUT,
 )
+from .credential_store import (
+    CredentialStoreError,
+    async_load_session,
+    async_resolve_credentials,
+    async_save_session,
+)
 from .repairs import async_clear_connection_issues, async_set_issue
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def create_client(hass: HomeAssistant, data: dict[str, Any]) -> AsyncAqaraClient:
-    """Use HA's TLS session; the integration never owns or closes it."""
-    if PROFILE.app_key is None:
-        raise ProtocolUnsupported()
-    # Setup retries and config flows must respect a previous server cooldown.
-    # Keep only limiter state, indexed by a hash; never credentials, in hass.data.
-    identity = AccountIdentity(data.get(CONF_REGION, "EU"), data[CONF_USER_ID])
+async def async_create_client(
+    hass: HomeAssistant,
+    *,
+    credential_loader: Callable[[], Awaitable[tuple[str, str]]],
+    persist_session: Callable[[SessionCredentials], Awaitable[None]],
+    initial_session: SessionCredentials | None = None,
+    expected_user_id: str | None = None,
+    consent: bool = False,
+) -> ManagedAqaraClient:
+    """Share account limits across flow, setup retries, reload and token renewal."""
+    if not consent or PROFILE.app_key is None:
+        raise AuthenticationRequired()
+    account, _ = await credential_loader()
+    limiter_key = sha256(f"EU:login:{account.casefold()}".encode()).hexdigest()
     limiters = hass.data.setdefault(DOMAIN, {}).setdefault("account_limiters", {})
-    limiter = limiters.setdefault(identity.account_key, AccountRateLimiter())
-    return AsyncAqaraClient(
+    limiter = limiters.setdefault(limiter_key, AccountRateLimiter())
+    transport = AsyncAqaraClient(
         async_get_clientsession(hass),
-        SessionAuthProvider(SessionCredentials(data[CONF_TOKEN], data[CONF_USER_ID])),
+        None,
         CandidateSigner(PROFILE.app_key, app_id=PROFILE.app_id),
         profile=PROFILE,
         limiter=limiter,
+        live_consent=True,
+    )
+    return ManagedAqaraClient(
+        transport,
+        credential_loader,
+        persist_session,
+        initial_session=initial_session,
+        expected_user_id=expected_user_id,
+        consent=True,
+    )
+
+
+async def async_create_entry_client(hass: HomeAssistant, entry: ConfigEntry) -> ManagedAqaraClient:
+    """Resolve secret references locally; tokens live in a separate private store."""
+    data = entry.data
+    if data.get(CONF_CONSENT) is not True or not all(
+        data.get(key) for key in (CONF_ACCOUNT_SECRET, CONF_PASSWORD_SECRET, CONF_SESSION_STORE_ID)
+    ):
+        raise AuthenticationRequired()
+
+    async def credentials() -> tuple[str, str]:
+        return await async_resolve_credentials(
+            hass, data[CONF_ACCOUNT_SECRET], data[CONF_PASSWORD_SECRET]
+        )
+
+    async def persist(session: SessionCredentials) -> None:
+        await async_save_session(hass, data[CONF_SESSION_STORE_ID], session)
+
+    return await async_create_client(
+        hass,
+        credential_loader=credentials,
+        persist_session=persist,
+        initial_session=await async_load_session(hass, data[CONF_SESSION_STORE_ID]),
+        expected_user_id=data[CONF_USER_ID],
+        consent=True,
     )
 
 
@@ -73,7 +126,7 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
-        client: AsyncAqaraClient,
+        client: ManagedAqaraClient,
         *,
         clock: Callable[[], float] = monotonic,
     ) -> None:
@@ -105,6 +158,8 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self._inflight: asyncio.Task[AccountSnapshot] | None = None
         self._closed = False
         self._terminal_error: str | None = None
+        self.successful_reads = 0
+        self.failed_reads = 0
 
     @callback
     def async_start_liveness(self) -> None:
@@ -171,7 +226,12 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
     async def _async_read_once(self) -> AccountSnapshot:
         try:
             snapshot = await self.client.async_read_traits(self.device_ids, PROFILE)
-        except AuthenticationRequired as err:
+        except SessionPersistenceError as err:
+            self._set_failure("retry_wait", "secret_store_failed")
+            raise UpdateFailed(
+                translation_domain=DOMAIN, translation_key="secret_store_failed"
+            ) from err
+        except (AuthenticationRequired, CredentialStoreError) as err:
             self._set_failure("reauth_required", "auth_required")
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN, translation_key="auth_required"
@@ -205,6 +265,9 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
                 translation_key="cannot_connect",
                 retry_after=self.client.limiter.retry_after,
             ) from err
+        if self.connection_status != "ready":
+            _LOGGER.info("Aqara cloud connection ready")
+        self.successful_reads += 1
         self.connection_status = "ready"
         self.error_key = None
         self.transport_stale = False
@@ -216,6 +279,9 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
 
     @callback
     def _set_failure(self, status: str, key: str) -> None:
+        self.failed_reads += 1
+        if self.error_key != key:
+            _LOGGER.warning("Aqara cloud update requires attention: %s", key)
         self.connection_status = status
         self.error_key = key
         if status in ("reauth_required", "protocol_unsupported"):

@@ -26,12 +26,15 @@ def aqara_entry():
     return MockConfigEntry(
         domain=DOMAIN,
         title="Aqara Presence Lab (EU)",
-        version=1,
+        version=2,
         unique_id=AccountIdentity("EU", "synthetic-user").account_key,
         data={
             "region": "EU",
             "user_id": "synthetic-user",
-            "token": "synthetic-session-secret",
+            "account_secret": "aqara_test_account",
+            "password_secret": "aqara_test_password",
+            "session_store_id": "synthetic-session-store",
+            "allow_experimental_cloud": True,
             "device_ids": ["lumi1.000000000001", "lumi1.000000000002"],
             "poll_interval": 300,
         },

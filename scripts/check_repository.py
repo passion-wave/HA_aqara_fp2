@@ -29,6 +29,16 @@ def check() -> list[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
     if manifest["version"] != project["project"]["version"]:
         errors.append("Manifest/project version mismatch")
+    constants = ast.parse((COMPONENT / "const.py").read_text())
+    versions = [
+        node.value.value
+        for node in constants.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(target, ast.Name) and target.id == "VERSION" for target in node.targets)
+        and isinstance(node.value, ast.Constant)
+    ]
+    if versions != [manifest["version"]]:
+        errors.append("Manifest/runtime version mismatch")
     if manifest.get("domain") != COMPONENT.name or not manifest.get("config_flow"):
         errors.append("Invalid domain/config-flow metadata")
     required = [
@@ -40,6 +50,8 @@ def check() -> list[str]:
         "button.py",
         "diagnostics.py",
         "repairs.py",
+        "credential_store.py",
+        "api/account.py",
         "brand/icon.png",
     ]
     errors.extend(

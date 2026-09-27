@@ -1,144 +1,103 @@
 # Validierungsbericht
 
-**Stand: 27.09.2026 · Integrationsversion: 0.1.0b1 · Labor-Beta**
+**Stand: 27.09.2026 · Integrationsversion: 0.2.0b1 · Anmelde-Beta**
 
-## Tatsächliche Testbasis
+## Testbasis und Nachweisgrenzen
 
 Die Ausgangsdatei `Aqara_Presence_Lab_Implementierung.md` wurde vollständig gelesen
 und unverändert als [IMPLEMENTIERUNG.md](IMPLEMENTIERUNG.md) übernommen.
-Ein separates Starterprogramm oder ZIP lag im Arbeitsverzeichnis nicht vor.
-Die vier JSON-Fixtures wurden daher direkt aus Anhang A extrahiert, als JSON
-validiert und anschließend mit dem neu implementierten gemeinsamen Kern geprüft.
+Die vier JSON-Fixtures stammen aus Anhang A: Request mit 31 und 37 Traits,
+Antwort mit 20 und 25 Traits. Helligkeit **9 und 110 lx** wird unverändert
+gelesen; Geräte werden auch bei umgekehrter Antwortreihenfolge richtig zugeordnet.
+Diese historischen Beispiele sind keine aktuellen Messungen.
 
-- Request: 31 und 37 Trait-Einträge, Antwort: 20 und 25 Einträge.
-- Zuordnung über Geräte-ID trotz umgekehrter Reihenfolge.
-- Helligkeit: **9 und 110 lx**, unverändert und ohne Rundung nach `step`.
-- Synthetischer Signaturvektor stimmt mit der dokumentierten Formel überein.
-- Fixture-Provenienz bleibt `wire_exact=false`, `live_validated=false`.
+Der Loginvertrag stammt aus dem festgelegten MIT-lizenzierten
+[SleepRadar-Quellstand](PROTOCOL_SOURCE.md). Die Softwareprüfungen verwenden
+synthetische Konten und simulierte Serverantworten. Netzwerk-Sockets sind in
+den Standardtests gesperrt. Eine erfolgreiche Simulation beweist keine reale
+Anmeldung, aktuelle Sensordaten oder einen stabilen Dauerbetrieb.
 
 ## Automatisierte Prüfung
 
-Lokaler Abschlusslauf des Entwicklungsstands nach 0.1.0b1: **429 Tests bestanden**, **93 % Coverage.py-Abdeckung
-einschließlich Verzweigungen**, keine fehlgeschlagenen oder übersprungenen Tests.
-Mypy prüft alle 24 Integrationsmodule; Ruff bestätigt 59 formatierte Python-Dateien.
-Der reproduzierbare ZIP-Build und Gitleaks 8.30.1 sind ebenfalls erfolgreich.
+Lokaler Abschlusslauf: **583 Tests bestanden**, keine fehlgeschlagenen oder
+übersprungenen Tests, **93 % Coverage.py-Abdeckung einschließlich Verzweigungen**.
+Ruff bestätigt 68 Python-Dateien; Mypy prüft alle 27 Integrationsmodule.
+Repository-Vertrag, Dependency-Check, reproduzierbares Release-ZIP und
+Gitleaks 8.30.1 sind erfolgreich. Der vollständige öffentliche Dateibestand
+wurde ohne private lokale Captures auf Geheimnisse geprüft.
+
+Die zusätzlichen Ergebnisse unter Linux sowie die offiziellen HACS- und
+Hassfest-Prüfungen stehen in der
+[GitHub-CI](https://github.com/passion-wave/HA_aqara_fp2/actions/workflows/ci.yml).
 
 Testumgebung: **Home Assistant 2026.9.3**, **Python 3.14.6**,
 `pytest-homeassistant-custom-component==0.13.366`, `aiohttp==3.14.3`,
-`cryptography==48.0.1`. Lokal macOS/Python 3.14.6;
-GitHub Actions prüft zusätzlich auf Linux/Python 3.14.7.
-Die verbindlichen Ausführungsergebnisse stehen in der
-[CI dieses Repositorys](https://github.com/passion-wave/HA_aqara_fp2/actions/workflows/ci.yml).
+`cryptography==48.0.1`. GitHub Actions prüft zusätzlich unter Linux/Python 3.14.
 
 | Prüfgruppe | Inhalt |
 |---|---|
-| Parser | Fixture, Reihenfolge, Unicode, große IDs, Typen, Defaults, null, ungültige Zahlen und Zeiten |
-| Strenge Eingabe | Doppelte JSON-Schlüssel, Traitkonflikte, Limits, abgeschnittene Daten, isolierte Gerätefehler |
-| Signierung | Synthetischer Vektor, optionale Tokens, exakte Bytes, Unicode und Whitespace, sichere Fehler |
-| Transport | HTTP-Fehler vor JSON-Erfolg, Timeout, TLS, Redirects, Host/Proxy-Schutz, Cancellation |
-| Größenlimits | Tatsächlich gelesener Stream, gzip-Dekompression und komprimierte Größenbombe |
-| Import | HAR-Auswahl, Proxyman-JSON-Spiegel ohne Byteänderung, minimale Pakete, konservatives cURL-Parsing ohne Ausführung, Dateirechte |
-| Auth | Simulierter Loginvertrag, lokale RSA-Rundreise, Einwilligung, Kontomismatch, Single-Flight |
-| Rate-Limits | Monotone Cooldowns, Backoff/Jitter, Retry-After in Sekunden und als Datum, Probejournal |
-| Qualität | Ungeklärte Quellenzeit, bestätigte Semantik als Testfall, Zukunftszeit, fehlende Werte |
-| HA-Einrichtung | Offline ohne Entry/Entitäten, Live-Gate, simulierte Geräteauswahl, Duplicate Account, Reauth, Reconfigure |
-| HA-Laufzeit | Batching, Refresh, unabhängiger Empfangstimer, Verfügbarkeit, Setup/Unload/Reload, Schema |
-| Entitäten | Stabile Kennungen, korrekte Einheiten, Rohcodes, keine Fantasie-Capabilities, HomeKit unverändert |
-| Datenschutz | Keine Test-Secrets in Repr, Fehlern oder Diagnose-Allowlist |
-| Paket | Deterministisches ZIP, kompilierbare Runtime-Dateien, Übersetzungsabdeckung, vollständiger Katalog |
+| Parser und Qualität | Gerätezuordnung, Unicode, große IDs, null/fehlende Werte, doppelte Schlüssel, Traitkonflikte, Grenzen, Quellenzeit und Zukunftsanomalien |
+| Signierung und Transport | Exakte Bytes, RSA-Passwortaufbereitung, HTTP-Fehler vor Bodycodes, TLS, feste Hosts, Redirect-/Proxy-Schutz, Timeout, Cancellation, begrenzte Dekompression |
+| Sitzungslebenszyklus | Gespeicherte Sitzung, belegter Ablauf, gemeinsamer Login, gleiche Kontoidentität, vollständige Geräteprüfung, dauerhafte Übernahme erst nach erfolgreicher Speicherung |
+| Fehler und Pausen | HTTP 429/503, Retry-After, monotone Kontolimits, keine Login-Schleifen bei unbekannten Codes, begrenzte Wiederverwendung gepufferter Antworten |
+| Secrets und Dateien | Echte temporäre Dateien, Erhalt fremder Einträge/Kommentare, atomare Schreibvorgänge, Dateirechte, Parallelität, Syntax-/Größenlimits, Symlink-/Hardlink-Ablehnung, Neustart |
+| HA-Assistent | Einwilligung, lokale Eingabe oder Secret-Referenzen, Fortschritt, Geräteauswahl, Abbruch, Speicherfehler, Duplicate Account, Reauth und Reconfigure |
+| HA-Laufzeit | Setup/Unload/Reload, Migration alter Token-Einträge, gemeinsame Abrufe, Entitätskennungen, Verfügbarkeit, unabhängiger Empfangstimer, Repairs und Diagnose |
+| Durchgehender Ablauf | Echter HA-Flow → RSA/Transport/Parser mit simuliertem HTTP → echte Secret-/Sessiondateien → Setup → Tokenablauf → Neuanmeldung → Neustart mit neuem Token |
+| Datenschutz | Keine synthetischen Credentials in DEBUG-Logs, Repr, Fehlern, Config Entries oder Diagnoseexporten; feste Feldauswahl statt Rohantworten |
+| Distribution | Ruff, Mypy, Dependency-Check, Übersetzungsvertrag, reproduzierbares Runtime-ZIP, Gitleaks sowie offizielle Hassfest-/HACS-Prüfung |
 
-Alle Standardtests blockieren Netzwerk-Sockets. Kein Test verwendet persönliche
-Zugangsdaten. Testdoubles umgehen Gates ausschließlich innerhalb der Tests, um
-noch nicht live freigegebene Laufzeitpfade zu prüfen.
+Der vollständige Ablauf ersetzt ausschließlich die HTTP-Antworten und die
+Warteuhr. Passwortverschlüsselung, Signierung, Parser, HA-Assistent und private
+Dateispeicherung laufen zusammen. Einzeltests prüfen zusätzlich Fehlerwege und
+die echten HA-Entitätsplattformen. Es werden keine persönlichen Zugangsdaten
+in Tests oder CI verwendet.
 
-Zusätzliche Prüfungen: Ruff-Lint und Formatierung, Mypy für die komplette
-Integration, `pip check`, Repository-Vertrag, Gitleaks-Secret-Scan und die
-offiziellen Hassfest-/HACS-Actions. Die Gitleaks-Ausnahme betrifft ausschließlich
-die eine verifizierte öffentliche Herstellerkonstante im festgelegten Quelldateipfad.
-
-Hassfest und der Secret-Scan wurden auch auf GitHub erfolgreich ausgeführt.
-Auch `hacs.json` und `manifest.json` bestehen die **unveränderten offiziellen
-HACS-Schemas** aus Commit `adb7d83e33d24325535fb43b8226572405143757` von
-[`hacs/integration`](https://github.com/hacs/integration/blob/adb7d83e33d24325535fb43b8226572405143757/custom_components/hacs/utils/validate.py).
-Der bereinigte Schema-Prüfbericht ist dem Beta-Release beigefügt. Der
-[finale GitHub-CI-Lauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36266205069)
-bestätigt alle 321 Tests, Hassfest, Linting, Typprüfung und Secret-Scan.
-Nach der Öffentlichschaltung am 27.09.2026 besteht auch die
-[offizielle HACS-Remoteprüfung](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36302490172).
-Der [aktuelle Entwicklungslauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36339304871)
-bestätigt inzwischen alle 429 Tests einschließlich der ergänzten Import- und
-Fehlerdiagnoseprüfungen sowie die offiziellen HACS-/Hassfest-Prüfungen.
-Die frühere Sperre aufgrund privater Repository-Sichtbarkeit ist damit aufgehoben.
-Die Aqara-Live-Gates bleiben unabhängig davon offen. Im ersten GitHub-Lauf waren alle
-306 Tests erfolgreich, der zusätzliche Artifact-Upload scheiterte jedoch am
-kontoweiten GitHub-Speicherlimit. Dieser optionale Upload beeinflusst deshalb
-künftig nicht den Teststatus; Coverage bleibt in Logs und Run Summary erhalten.
-Das Release-ZIP wird separat an das GitHub-Release angehängt.
-
-## Live-Abnahme
+## Bisherige Live-Beobachtungen
 
 | Gate | Status |
 |---|---|
 | G0 – Offline-Vertrag | Automatisiert geprüft |
 | G1 – eigener Original-Capture | **Bestanden am 27.09.2026**; exakter lokaler Signaturvergleich |
-| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden am 27.09.2026**; vier autorisierte Proben, Sitzung vom Server abgelehnt |
+| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden**; vier frühere autorisierte Proben mit inzwischen abgelehnter Sitzung |
 | G3 – App/Proxy unabhängig, Subscription und Frische | **Offen** |
 | G4 – Präsenzsemantik | **Offen**, kein Cloud-Occupancy-Sensor |
-| G5 – echte Sitzungserneuerung / Login | **Offen** |
-| G6 – 24 Stunden, Neustart und Ausfall | **Nicht durchgeführt** |
+| G5 – echte Sitzungserneuerung / Login | **Offen**, Softwareablauf automatisiert geprüft |
+| G6 – 24 Stunden, Neustart und Ausfall am Nutzerkonto | **Nicht durchgeführt** |
 
-Der lokale G1-Vergleich mit einem eigenen HAR-Export ergibt `matched` für
-`sleepradar_eu_candidate_v1`, Profilversion 1. Die originalen Request-Body-Bytes
-bleiben unverändert. Der Export enthält zwei Geräte; auch die gespeicherte
-Antwort besteht den Parservertrag. Der Request ist zum Prüfzeitpunkt älter als
-einen Tag. G1 bestätigt daher weder eine aktuell gültige Sitzung noch aktuelle
-Messwerte. Capture, Zugangsdaten und Rohantwort bleiben ausschließlich lokal.
+G1 ergab `matched` für `sleepradar_eu_candidate_v1`, Profilversion 1.
+Der lokale HAR enthält zwei Geräte; die gespeicherte Antwort besteht den
+Parservertrag. Der Request war bereits älter als einen Tag. Die tatsächlichen
+Capture-Bytes, Zugangsdaten und Rohantworten bleiben ausschließlich lokal.
 
-Am 27.09.2026 wurden insgesamt **vier ausdrücklich autorisierte, neu signierte
-G2-Leseproben** gesendet. Der Nutzer hat die Fortsetzung bis insgesamt zehn
-Versuche erlaubt; das bestehende Versuchsjournal und die Mindestabstände gelten
-weiter. Die erste Probe lieferte einen Anwendungsfehler, dessen genaue Nummer das
-damalige CLI nicht ausgab. Die zweite Probe lieferte HTTP 200 und Code 108.
+Am 27.09.2026 wurden vor dieser Anmeldeimplementierung insgesamt vier autorisierte
+G2-Leseproben durchgeführt. Die erste lieferte einen damals nur allgemein
+angezeigten Anwendungsfehler. Die drei folgenden lieferten HTTP 200 und Code 108,
+auch mit den exakt beobachteten zusätzlichen App-Kontextheadern. Die vierte
+Antwort bestätigte ausdrücklich `Token has expired`; nur das Vergleichsergebnis
+wurde ausgegeben. Diese direkte Beobachtung begründet die Ablaufzuordnung für
+den privaten EU-Trait-Endpunkt, nicht für beliebige Aqara-APIs.
 
-Zwei gezielte lokale Vergleichsproben prüften ausschließlich belegte Header aus
-dem erfolgreichen Original-Capture: zunächst zusätzlich `Sys-Type: 0`, danach
-den App-Kontext (`Sys-Type`, `User-Agent`, `Lang`, `PhoneId`, `Clientid`,
-`Phone-Model`, `Sys-Version`, `Accept-Language`). Body, Token und Geräteauswahl
-blieben gleich; Zeit, Nonce und Signatur wurden jedes Mal frisch erzeugt. Beide
-Vergleiche lieferten ebenfalls HTTP 200 und Code 108. In der vierten Antwort
-wurde außerdem exakt `msgDetails = "Token has expired"` bestätigt. Nur das
-Ergebnis dieses Vergleichs wurde ausgegeben, keine freien Servernachrichten.
+Es gab in diesem Implementierungsschritt **keine echte Kontoanmeldung und keine
+weiteren Aqara-Anfragen**. Wiederholung mit dem alten Token kann die Sitzung
+nicht erneuern. Version 0.2.0b1 stellt dafür den bewusst gestarteten Loginweg
+bereit. Die früheren lokalen Headerexperimente sind kein produktives Profil.
 
-Damit ist die Sitzung dieses Captures serverseitig abgelehnt. Ein neu
-aufgezeichneter erfolgreicher App-Request mit aktueller Sitzung wird benötigt.
-Weitere identische Anfragen können keine Sitzung erneuern. Es gab keinen Login,
-keinen Hintergrundpoller und keinen erfolgreichen Live-Datenabruf. Die lokalen
-Headerexperimente wurden nicht als produktives Profil übernommen. Die
-Fehlerzuordnung bezieht sich auf diesen direkt beobachteten privaten Endpunkt;
-ein allgemeines Mapping fremder Open-API-Codes wird daraus nicht abgeleitet.
+## Freigabe und nächste Abnahme
 
-An einem laufenden Home Assistant wurden keine Änderungen vorgenommen.
-Die Probe verwendete den Leseendpunkt und das originale `needSubscribe=true`;
-dessen Sitzungseffekt bleibt ungeklärt. Der erwartete lokale
-HA-Konfigurationsmount war nicht verfügbar. Die tatsächlich verwendete
-HA-Version des Nutzers ist daher nicht bestätigt; die genannte Version ist die
-getestete Entwicklungsbasis.
+Freigegeben ist die **experimentelle Anmelde-Beta** mit lokaler
+Zugangsdatenverwaltung, Sitzungserneuerung, Einrichtung, Entitäten und Diagnose.
+Der Nutzerauftrag erlaubt diesen experimentellen Betrieb vor Abschluss der
+Langzeitnachweise; deren Evidenzstatus bleibt offen. Der zuvor ausschließlich
+statische Vorschauweg ist nicht mehr die einzige Einrichtungsoption.
 
-## Freigabeentscheidung und verbleibende Arbeit
+Die reale Anmeldung am Nutzerkonto wird erst nach Fertigstellung und Rückfrage
+gestartet. Anschließend sind Gerätezugriff, unabhängig veränderte Messwerte,
+Subscription-Verhalten, Sitzungserneuerung und Dauerbetrieb zu prüfen.
+Präsenzsemantik, Personenposition/-anzahl und Schlafdaten werden nicht aus den
+vorliegenden Rohcodes abgeleitet.
 
-Freigegeben ist die **installierbare Labor-Beta mit Offline-Vorschau und lokalen
-Prüfwerkzeugen**. Nicht freigegeben sind produktives Cloud-Polling, automatische
-Anmeldung, semantische Präsenz, Personenpositionen/-anzahl und Schlafdaten.
-
-Der produktive Gate ist im ausgelieferten Profil technisch geschlossen. Es gibt
-keinen Benutzer-Schalter zur Umgehung. Selbst ein erfolgreicher Trait-Read beweist
-noch keine Bindung des eingegebenen `Userid` an das Token. Vor Live-Einrichtung
-muss deshalb ein belegter Identitätsadapter samt Konto-/Geräteprüfung ergänzt
-und getestet werden. Ebenso benötigt `needSubscribe=false` einen eigenen
-Profilvertrag und Vergleichstest. Die aktuelle Laborprobe erhält `true` wie im
-Capture. Eine Profiländerung ohne Nachweis ist keine Freigabe.
-
-Diese Einschränkungen entsprechen ausdrücklich der gelieferten Spezifikation.
-Sie sind keine durch Mock-Tests erledigten Arbeitspakete. Der nächste Schritt ist
-G2 erneut mit einem aktuellen Original-Request und verbesserter bereinigter
-Fehlerdiagnose prüfen; jeder weitere Aufruf benötigt einen bewussten Start.
+Am laufenden Home Assistant des Nutzers wurden keine Änderungen vorgenommen.
+Der erwartete Konfigurationsmount war nicht verfügbar; seine tatsächliche
+HA-Version ist noch nicht bestätigt. Die oben genannte Version ist die getestete
+Entwicklungsbasis.

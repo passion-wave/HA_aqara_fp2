@@ -4,10 +4,10 @@
     "step": {
       "user": {
         "title": "Aqara Presence Lab",
-        "description": "Add cloud observations to your local Aqara sensors. Your existing HomeKit connection and automations remain independent. This release includes an offline preview; continuous cloud access requires a reviewed protocol and account identity.",
+        "description": "Add Aqara cloud observations while keeping HomeKit and existing automations unchanged. Sign in with your Aqara account or first preview historical examples.",
         "menu_options": {
-          "offline": "Offline preview",
-          "live": "Check live availability"
+          "live": "Sign in to Aqara",
+          "offline": "Offline preview"
         }
       },
       "offline": {
@@ -15,12 +15,12 @@
         "description": "Historical example data from 25 September 2026: Sensor A reported 9 lx, Sensor B 110 lx. Both presence candidates contained the raw code 0; its meaning and freshness are unverified. These examples create no devices, entities or network requests. Coordinates, person count and sleep data are not available."
       },
       "credentials": {
-        "title": "Existing session (EU)",
-        "description": "EU only. Enter an existing Aqara session locally and explicitly list device IDs (one per line). No password or automatic login is used. Credentials are stored in Home Assistant configuration; protect administration and backups. A server-validated account identity and reviewed protocol are required before a device read.",
+        "title": "Sign in to Aqara (EU)",
+        "description": "Enter your account and password locally. Both are stored in secrets.yaml after validation and final confirmation. Enter the desired device IDs, one per line; there is no automatic device discovery.\n\nLogin and device reads share a cooldown of at least 30 seconds. The progress screen remains open during this wait.",
         "data": {
+          "account": "Aqara account (email/username)",
+          "password": "Password",
           "region": "Region",
-          "token": "Session token",
-          "user_id": "Aqara user ID",
           "device_ids": "Device IDs"
         }
       },
@@ -34,29 +34,48 @@
       },
       "reauth_confirm": {
         "title": "Renew session",
-        "description": "The Aqara session needs renewal. Your devices and history remain in place. Enter a session for the same account locally; the existing selection is checked before credentials are replaced.",
-        "data": {
-          "token": "Session token",
-          "user_id": "Aqara user ID"
-        }
+        "description": "Automatic sign-in needs your help. Devices and history remain in place. Sign in again with the same account or choose updated secret names. The existing selection is checked before replacing the session."
       },
       "reconfigure": {
-        "title": "Device selection and interval",
-        "description": "Choose device IDs and the shared polling interval. The existing account identity is checked. Existing local HomeKit devices and areas remain independent.",
+        "title": "Recheck account and devices",
+        "description": "Account identity must stay unchanged. After sign-in you can change the device selection and polling interval."
+      },
+      "live": {
+        "title": "Allow experimental cloud access",
+        "description": "Allow the integration to sign in to your Aqara account, read selected devices and automatically renew expired sessions. Account and password are stored locally in secrets.yaml or resolved using existing secret names; session tokens use a separate private HA store. Administrators and backups may have access to these values.\n\nThe private Aqara interface is experimental: long-term reliability and measurement freshness are unverified. Reads use the observed subscription behavior. MFA or CAPTCHA may require manual action. Enter your password only here locally, never in issues or chats.",
         "data": {
-          "device_ids": "Device IDs",
-          "poll_interval": "Polling interval"
+          "allow_experimental_cloud": "Allow experimental access and automatic sign-in"
         }
+      },
+      "login_source": {
+        "title": "Choose credentials",
+        "description": "Use credentials for your Aqara EU account. The server establishes account identity; only explicitly selected device IDs are read.",
+        "menu_options": {
+          "credentials": "Enter account and password",
+          "secrets": "Use existing secrets.yaml entries"
+        }
+      },
+      "secrets": {
+        "title": "Use existing secrets",
+        "description": "Enter only the names of two entries in secrets.yaml in the HA configuration directory, for example aqara_account and aqara_password. Values are resolved locally and are not stored in this integration’s configuration entry. Enter desired device IDs, one per line.",
+        "data": {
+          "account_secret": "Account secret name",
+          "password_secret": "Password secret name",
+          "region": "Region",
+          "device_ids": "Device IDs"
+        }
+      },
+      "validate": {
+        "title": "Checking sign-in and devices"
       }
     },
     "error": {
       "invalid_capture": "The export is incomplete or not a single JSON document. Export it again locally; do not post credentials.",
-      "missing_credentials": "The session is missing required information. Complete the local fields.",
-      "signature_unverified": "This protocol has not passed the required live, identity and subscription tests. Use the offline preview and follow the local validation guide; continuous cloud polling is disabled.",
+      "missing_credentials": "Enter both your account and password, or provide both existing account and password entry names from secrets.yaml.",
       "signature_rejected": "The signed request was rejected. Check the session, protocol profile and clock; repeated logins will not resolve an unverified signature.",
       "cannot_connect": "Aqara is temporarily unreachable. The integration will respect its retry delay.",
       "rate_limited": "Aqara is limiting requests. Wait for the shared cooldown before trying again.",
-      "auth_required": "Renew the Aqara session for the configured account.",
+      "auth_required": "Sign-in failed or the session is no longer valid. Check the account, password and any additional verification in the Aqara app. The integration will not keep retrying sign-in.",
       "account_mismatch": "This session belongs to a different account. Use the configured account; existing devices have not been reassigned.",
       "no_selected_device_data": "No usable response was received for the selection. Check the device IDs and Aqara app mode.",
       "freshness_unverified": "A cloud value was reported, but its physical measurement freshness is unverified.",
@@ -64,16 +83,22 @@
       "unsupported_region": "Only the observed EU region is supported. No other regional host will be tried.",
       "invalid_device_ids": "Enter one to 100 device IDs, one per line, without whitespace inside an ID.",
       "invalid_interval": "Choose an interval from 60 to 3600 seconds.",
-      "protocol_unsupported": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+      "protocol_unsupported": "This access method is unsupported or has not been explicitly allowed. Check sign-in and the protocol profile.",
+      "consent_required": "Allow experimental cloud access and automatic sign-in to continue.",
+      "secret_not_found": "At least one secret name is missing from local secrets.yaml. Check the entries and spelling.",
+      "secret_store_failed": "Credentials could not be read or stored safely. Check secrets.yaml and file permissions.",
+      "unknown": "Sign-in could not be completed. Check the sanitized integration diagnostics."
     },
     "abort": {
       "offline_complete": "Offline preview finished. No devices, entities or connections were created.",
       "already_configured": "This Aqara account is already configured.",
       "reauth_successful": "The session was renewed for the same account.",
       "reconfigure_successful": "The device selection and interval were updated.",
-      "signature_unverified": "This protocol has not passed the required live, identity and subscription tests. Use the offline preview and follow the local validation guide; continuous cloud polling is disabled.",
       "no_selected_device_data": "No usable response was received for the selection. Check the device IDs and Aqara app mode.",
       "account_mismatch": "This session belongs to a different account. Use the configured account; existing devices have not been reassigned."
+    },
+    "progress": {
+      "login_and_read": "Checking sign-in, respecting the shared cooldown and reading selected devices. This may take more than 30 seconds. Keep this page open."
     }
   },
   "entity": {
@@ -139,26 +164,29 @@
       "message": "Aqara is limiting requests. Wait for the shared cooldown before trying again."
     },
     "auth_required": {
-      "message": "Renew the Aqara session for the configured account."
+      "message": "Sign-in failed or the session is no longer valid. Check the account, password and any additional verification in the Aqara app. The integration will not keep retrying sign-in."
     },
     "api_changed": {
       "message": "Aqara returned an unrecognized response. Check the protocol and use the sanitized diagnostic export."
     },
     "protocol_unsupported": {
-      "message": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+      "message": "This access method is unsupported or has not been explicitly allowed. Check sign-in and the protocol profile."
     },
     "signature_rejected": {
       "message": "The signed request was rejected. Check the session, protocol profile and clock; repeated logins will not resolve an unverified signature."
+    },
+    "secret_store_failed": {
+      "message": "Credentials could not be read or stored safely. Check secrets.yaml and file permissions."
     }
   },
   "issues": {
     "protocol_unsupported": {
       "title": "Aqara protocol needs validation",
-      "description": "Continuous cloud access is disabled because the required protocol and account evidence is not verified."
+      "description": "This access method is unsupported or has not been explicitly allowed. Check sign-in and the protocol profile."
     },
     "auth_required": {
       "title": "Aqara session needs renewal",
-      "description": "Renew the Aqara session for the configured account."
+      "description": "Sign-in failed or the session is no longer valid. Check the account, password and any additional verification in the Aqara app. The integration will not keep retrying sign-in."
     },
     "cannot_connect": {
       "title": "Aqara cloud connection interrupted",
@@ -167,6 +195,10 @@
     "freshness_unverified": {
       "title": "Cloud freshness is not verified",
       "description": "A cloud value was reported, but its physical measurement freshness is unverified."
+    },
+    "secret_store_failed": {
+      "title": "Check local session storage",
+      "description": "Credentials could not be read or stored safely. Check secrets.yaml and file permissions."
     }
   }
 }

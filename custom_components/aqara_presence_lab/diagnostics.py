@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from . import AqaraConfigEntry
 from .api.profiles import PROFILE
 from .api.redaction import build_diagnostics
-from .const import VERSION
+from .const import CONF_CONSENT, CONF_INTERVAL, DEFAULT_INTERVAL, VERSION
 
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: AqaraConfigEntry) -> dict:
@@ -26,5 +26,10 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: AqaraCo
         "transport_stale": coordinator.transport_stale,
         "error": coordinator.error_key,
         "selected_device_count": len(coordinator.device_ids),
+        "successful_reads": coordinator.successful_reads,
+        "failed_reads": coordinator.failed_reads,
+        "retry_after_seconds": round(coordinator.client.limiter.retry_after),
+        "poll_interval_seconds": entry.data.get(CONF_INTERVAL, DEFAULT_INTERVAL),
+        "experimental_cloud_consent": entry.data.get(CONF_CONSENT) is True,
     }
     return result

@@ -2,7 +2,15 @@
 
 Der implementierte Kandidat wurde am 26.09.2026 erneut anhand des [festen SleepRadar-Quellstands](https://github.com/florianhorner/ha-fp2-sleep/blob/3af017fc995d5f05e65720ae5b1ed0690a04504c/aqara_fp2_sleep/aqara_fp2_sleep_poller.py) geprüft. Der Git-Blob ist unverändert `b48a4417deebd04cf4e6b3eb3d918300e6081d25`. Der gleiche Commit enthält eine MIT-Lizenz, Copyright 2026 Florian Horner; [Lizenzkopie](licenses/SleepRadar-MIT.txt) und [Hinweise](../THIRD_PARTY_NOTICES.md) liegen im Projekt.
 
-Die eigene Implementierung übernimmt den beschriebenen Signaturaufbau und die beiden öffentlichen Herstellerkonstanten. Sie übernimmt weder Poller-Code noch Enum-Tabellen oder Fehlercode-Vermutungen. Die Quelle benutzt `/app/v1.0/lumi/res/query`; die Übertragbarkeit auf `/app/v1.0/lumi/app/qlink/trait/read` bleibt **live unbestätigt**. Auch Login und MFA-Verhalten sind nicht am Nutzerkonto geprüft. `cryptography==48.0.1` führt die RSA-PKCS1v15-Passwortverschlüsselung aus; ein gespeicherter Passwort-Hash wird nicht als Ersatzgeheimnis veröffentlicht.
+Die eigene Implementierung übernimmt den beschriebenen Signaturaufbau, Loginvertrag und die beiden öffentlichen Herstellerkonstanten. Sie übernimmt weder Poller-Code noch Enum-Tabellen oder Fehlercode-Vermutungen. Die Quelle benutzt `/app/v1.0/lumi/res/query`; ein erfolgreicher eigener Datenabruf über `/app/v1.0/lumi/app/qlink/trait/read` bleibt **live unbestätigt**. Auch Login und MFA-Verhalten sind nicht am Nutzerkonto geprüft. `cryptography==48.0.1` führt die RSA-PKCS1v15-Passwortverschlüsselung aus; ein gespeicherter Passwort-Hash wird nicht als Ersatzgeheimnis veröffentlicht.
+
+Ab 0.2.0b1 nutzt der bewusst aktivierte Anmeldeweg die belegten Loginheader:
+`Sys-Type: 1`, `Lang: en`, `User-Agent: pyAqara/1.0.0`, `App-Version: 3.0.0`
+und eine frische Phone-ID nach dem Quellenvertrag. Neu erzeugte Loginsitzungen
+behalten den Systemtyp bei Folgeabrufen. Dieser Kontext ist getrennt vom
+iOS-Systemtyp `0` des historischen HAR. Passwörter werden über Secret-Referenzen
+geladen; der neue Kontoclient übernimmt Wiederanmeldung und atomare
+Sitzungsspeicherung nach Konto- und Geräteprüfung.
 
 ## Befehle
 
@@ -30,7 +38,7 @@ Dieser konkrete Befehl autorisiert genau einen HTTPS-Request. Ohne `--allow-live
 
 Das lokale, mit Dateisperre geschützte Journal `private/probe-budget.json` zählt auch fehlgeschlagene Versuche: höchstens zehn pro Konto und Untersuchungsschritt, mindestens 30 Sekunden Abstand. `Retry-After`, Netzwerk- und Serverfehler verlängern die Pause auch über CLI-Neustarts hinweg. Das Journal enthält keine Tokens. Nach Schließen von App und Proxy kann `--step G3` den zweiten dokumentierten Untersuchungsschritt kennzeichnen. Ein G3-HTTP-Erfolg allein beweist weder Frische noch Präsenzsemantik. Keine beliebigen Host-/Endpunkt-Optionen, keine automatischen Regionswechsel.
 
-Die Ausgabe enthält Schemaerfolg, Geräteanzahl und ausdrückliche Hinweise auf unbestätigte Identität/Aktualität. Auch ein erfolgreicher Bericht öffnet **keinen** HA-Produktionsgate. G3, G4 (Präsenz), G5 (Reauth), G6 (24 Stunden und Neustart) sowie Subscription-Verhalten und serverseitige Kontobindung benötigen separate Nachweise und Profilprüfung. Ohne diese Evidenz bleibt die installierbare Integration im Laborzustand.
+Die Ausgabe enthält Schemaerfolg, Geräteanzahl und ausdrückliche Hinweise auf unbestätigte Identität/Aktualität. Ein Laborbericht schaltet die HA-Einrichtung nicht automatisch um. Der neue Anmeldeweg wird separat bewusst aktiviert. G3, G4 (Präsenz), G5 (Reauth), G6 (24 Stunden und Neustart) sowie Subscription-Verhalten bleiben eigenständige Nachweise; die Nutzerzustimmung behauptet keine Produktionsvalidierung.
 
 ## Transport und Tests
 

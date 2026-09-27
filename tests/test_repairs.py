@@ -18,9 +18,9 @@ async def test_repair_lifecycle(hass, aqara_entry):
     for key in ISSUES:
         async_set_issue(hass, aqara_entry.entry_id, key)
     registry = ir.async_get(hass)
-    assert len(registry.issues) == 4
+    assert len(registry.issues) == 5
     async_set_issue(hass, aqara_entry.entry_id, "synthetic-secret")
-    assert len(registry.issues) == 4
+    assert len(registry.issues) == 5
     async_clear_connection_issues(hass, aqara_entry.entry_id)
     assert list(registry.issues) == [(DOMAIN, f"{aqara_entry.entry_id}_freshness_unverified")]
     async_remove_issues(hass, aqara_entry.entry_id)

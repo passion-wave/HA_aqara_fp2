@@ -4,10 +4,10 @@
     "step": {
       "user": {
         "title": "Aqara Presence Lab",
-        "description": "Ergänzt deine lokalen Aqara-Sensoren um Cloud-Daten. Deine bestehende HomeKit-Verbindung und Automationen bleiben unabhängig. Diese Version enthält eine Offline-Vorschau; fortlaufender Cloud-Zugriff erfordert ein geprüftes Protokoll und eine bestätigte Kontoidentität.",
+        "description": "Ergänzt deine lokalen Aqara-Sensoren um Cloudwerte. HomeKit und bestehende Automationen bleiben unverändert. Melde dich mit deinem Aqara-Konto an oder sieh dir zuerst historische Beispieldaten an.",
         "menu_options": {
-          "offline": "Offline-Vorschau",
-          "live": "Live-Verfügbarkeit prüfen"
+          "live": "Mit Aqara anmelden",
+          "offline": "Offline-Vorschau"
         }
       },
       "offline": {
@@ -15,12 +15,12 @@
         "description": "Historische Beispieldaten vom 25.09.2026: Sensor A meldete 9 lx, Sensor B 110 lx. Beide Präsenzkandidaten enthielten den Rohcode 0; Bedeutung und Aktualität sind ungeprüft. Diese Vorschau erzeugt keine Geräte, Entitäten oder Netzwerkanfragen. Koordinaten, Personenanzahl und Schlafdaten sind nicht verfügbar."
       },
       "credentials": {
-        "title": "Vorhandene Sitzung (EU)",
-        "description": "Nur EU. Gib eine vorhandene Aqara-Sitzung lokal ein und wähle Geräte über ihre Kennungen (eine pro Zeile). Passwort und automatische Anmeldung werden nicht verwendet. Zugangsdaten werden in der Home-Assistant-Konfiguration gespeichert; schütze Administration und Backups. Vor einem Geräteabruf müssen Kontoidentität und Protokoll geprüft sein.",
+        "title": "Bei Aqara anmelden (EU)",
+        "description": "Gib Konto und Passwort lokal ein. Nach erfolgreicher Prüfung und abschließender Bestätigung werden beide in secrets.yaml gespeichert. Kennungen der gewünschten Geräte: eine pro Zeile; eine automatische Gerätesuche wird nicht durchgeführt.\n\nZwischen Anmeldung und Geräteabruf gilt eine gemeinsame Pause von mindestens 30 Sekunden. Die Fortschrittsanzeige bleibt währenddessen geöffnet.",
         "data": {
+          "account": "Aqara-Konto (E-Mail/Benutzername)",
+          "password": "Passwort",
           "region": "Region",
-          "token": "Sitzungstoken",
-          "user_id": "Aqara-Benutzerkennung",
           "device_ids": "Gerätekennungen"
         }
       },
@@ -34,29 +34,48 @@
       },
       "reauth_confirm": {
         "title": "Sitzung erneuern",
-        "description": "Die Aqara-Sitzung muss erneuert werden. Deine Geräte und Aufzeichnungen bleiben bestehen. Gib eine Sitzung desselben Kontos lokal ein; die bestehende Auswahl wird vor dem Austausch der Zugangsdaten geprüft.",
-        "data": {
-          "token": "Sitzungstoken",
-          "user_id": "Aqara-Benutzerkennung"
-        }
+        "description": "Die automatische Anmeldung benötigt deine Hilfe. Geräte und Aufzeichnungen bleiben erhalten. Melde dich erneut mit demselben Konto an oder wähle aktualisierte Secret-Namen. Die bestehende Geräteauswahl wird vor dem Austausch der Sitzung geprüft."
       },
       "reconfigure": {
-        "title": "Geräteauswahl und Intervall",
-        "description": "Wähle Gerätekennungen und das gemeinsame Abrufintervall. Die vorhandene Kontoidentität wird geprüft. Bestehende lokale HomeKit-Geräte und Bereiche bleiben unabhängig.",
+        "title": "Konto und Geräte neu prüfen",
+        "description": "Die Kontoidentität muss unverändert bleiben. Nach der Anmeldung kannst du Geräteauswahl und Abrufintervall ändern."
+      },
+      "live": {
+        "title": "Experimentellen Cloud-Zugriff erlauben",
+        "description": "Die Integration darf sich mit deinem Aqara-Konto anmelden, ausgewählte Geräte lesen und eine abgelaufene Sitzung automatisch erneuern. Konto und Passwort werden lokal in secrets.yaml gespeichert oder über vorhandene Secret-Namen gelesen; Sitzungstokens liegen in einem separaten privaten HA-Speicher. Administratoren und Backups können diese Daten enthalten.\n\nDie private Aqara-Schnittstelle ist experimentell: Die langfristige Zuverlässigkeit und Aktualität sind nicht bestätigt. Leseabrufe verwenden das beobachtete Subscription-Verhalten. MFA oder CAPTCHA können eine manuelle Anmeldung erfordern. Dein Passwort bitte nur hier lokal eingeben, niemals in Issues oder Chats.",
         "data": {
-          "device_ids": "Gerätekennungen",
-          "poll_interval": "Abrufintervall"
+          "allow_experimental_cloud": "Experimentellen Zugriff und automatische Anmeldung erlauben"
         }
+      },
+      "login_source": {
+        "title": "Zugangsdaten auswählen",
+        "description": "Verwende die Anmeldedaten deines Aqara-EU-Kontos. Der Server bestätigt das Konto; Geräte werden nur über deine ausdrücklich gewählten Kennungen abgefragt.",
+        "menu_options": {
+          "credentials": "Konto und Passwort eingeben",
+          "secrets": "Vorhandene secrets.yaml verwenden"
+        }
+      },
+      "secrets": {
+        "title": "Vorhandene Secrets verwenden",
+        "description": "Gib ausschließlich die Namen zweier Einträge aus der secrets.yaml im HA-Konfigurationsordner ein, zum Beispiel aqara_account und aqara_password. Die Werte werden lokal gelesen und nicht in der Konfiguration dieser Integration gespeichert. Gewünschte Gerätekennungen: eine pro Zeile.",
+        "data": {
+          "account_secret": "Secret-Name für das Konto",
+          "password_secret": "Secret-Name für das Passwort",
+          "region": "Region",
+          "device_ids": "Gerätekennungen"
+        }
+      },
+      "validate": {
+        "title": "Anmeldung und Geräte prüfen"
       }
     },
     "error": {
       "invalid_capture": "Der Export ist unvollständig oder kein einzelner JSON-Datensatz. Erneut lokal exportieren; keine Zugangsdaten posten.",
-      "missing_credentials": "Die Sitzung enthält nicht alle erforderlichen Angaben. Vervollständige die lokale Eingabe.",
-      "signature_unverified": "Dieses Protokoll hat die erforderlichen Live-, Identitäts- und Subscription-Tests noch nicht bestanden. Nutze die Offline-Vorschau und die Anleitung zur lokalen Prüfung; fortlaufende Cloud-Abfragen sind gesperrt.",
+      "missing_credentials": "Gib Konto und Passwort vollständig ein oder nenne beide vorhandenen Einträge für Konto und Passwort in secrets.yaml.",
       "signature_rejected": "Die signierte Anfrage wurde abgelehnt. Sitzung, Protokollprofil und Uhrzeit prüfen; wiederholte Anmeldungen lösen keine ungeprüfte Signatur.",
       "cannot_connect": "Aqara ist momentan nicht erreichbar. Die Integration hält ihre Wartezeit vor einem erneuten Versuch ein.",
       "rate_limited": "Aqara begrenzt gerade die Anfragen. Warte die gemeinsame Abrufpause ab.",
-      "auth_required": "Erneuere die Aqara-Sitzung für das eingerichtete Konto.",
+      "auth_required": "Anmeldung nicht möglich oder Sitzung nicht mehr gültig. Konto, Passwort und mögliche zusätzliche Prüfungen in der Aqara-App prüfen. Es werden keine Endlosversuche gestartet.",
       "account_mismatch": "Diese Sitzung gehört zu einem anderen Konto. Verwende das eingerichtete Konto; bestehende Geräte wurden nicht neu zugeordnet.",
       "no_selected_device_data": "Für die Auswahl kam keine verwertbare Antwort an. Gerätekennungen und App-Modus prüfen.",
       "freshness_unverified": "Ein Cloudwert liegt vor; seine Aktualität als physische Messung ist noch nicht bestätigt.",
@@ -64,16 +83,22 @@
       "unsupported_region": "Nur die beobachtete Region EU wird unterstützt. Andere Regionshosts werden nicht ausprobiert.",
       "invalid_device_ids": "Gib eine bis 100 Gerätekennungen ein, eine pro Zeile, ohne Leerzeichen innerhalb einer Kennung.",
       "invalid_interval": "Wähle ein Intervall zwischen 60 und 3600 Sekunden.",
-      "protocol_unsupported": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+      "protocol_unsupported": "Dieser Zugriffsweg wird nicht unterstützt oder wurde nicht ausdrücklich erlaubt. Prüfe die Anmeldung und das Protokollprofil.",
+      "consent_required": "Bitte erlaube den experimentellen Cloud-Zugriff und die automatische Anmeldung, um fortzufahren.",
+      "secret_not_found": "Mindestens ein Secret-Name fehlt in der lokalen secrets.yaml. Einträge und Schreibweise prüfen.",
+      "secret_store_failed": "Zugangsdaten konnten nicht sicher lokal gelesen oder gespeichert werden. secrets.yaml und Dateiberechtigungen prüfen.",
+      "unknown": "Die Anmeldung konnte nicht abgeschlossen werden. Prüfe die bereinigte Integrationdiagnose."
     },
     "abort": {
       "offline_complete": "Offline-Vorschau beendet. Es wurden keine Geräte, Entitäten oder Verbindungen angelegt.",
       "already_configured": "Dieses Aqara-Konto ist bereits eingerichtet.",
       "reauth_successful": "Die Sitzung desselben Kontos wurde erneuert.",
       "reconfigure_successful": "Geräteauswahl und Intervall wurden aktualisiert.",
-      "signature_unverified": "Dieses Protokoll hat die erforderlichen Live-, Identitäts- und Subscription-Tests noch nicht bestanden. Nutze die Offline-Vorschau und die Anleitung zur lokalen Prüfung; fortlaufende Cloud-Abfragen sind gesperrt.",
       "no_selected_device_data": "Für die Auswahl kam keine verwertbare Antwort an. Gerätekennungen und App-Modus prüfen.",
       "account_mismatch": "Diese Sitzung gehört zu einem anderen Konto. Verwende das eingerichtete Konto; bestehende Geräte wurden nicht neu zugeordnet."
+    },
+    "progress": {
+      "login_and_read": "Anmeldung prüfen, gemeinsame Abrufpause abwarten und ausgewählte Geräte lesen. Das kann länger als 30 Sekunden dauern. Bitte diese Seite geöffnet lassen."
     }
   },
   "entity": {
@@ -139,26 +164,29 @@
       "message": "Aqara begrenzt gerade die Anfragen. Warte die gemeinsame Abrufpause ab."
     },
     "auth_required": {
-      "message": "Erneuere die Aqara-Sitzung für das eingerichtete Konto."
+      "message": "Anmeldung nicht möglich oder Sitzung nicht mehr gültig. Konto, Passwort und mögliche zusätzliche Prüfungen in der Aqara-App prüfen. Es werden keine Endlosversuche gestartet."
     },
     "api_changed": {
       "message": "Die Aqara-Antwort entspricht nicht dem geprüften Format. Protokoll prüfen und bereinigte Diagnose verwenden."
     },
     "protocol_unsupported": {
-      "message": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+      "message": "Dieser Zugriffsweg wird nicht unterstützt oder wurde nicht ausdrücklich erlaubt. Prüfe die Anmeldung und das Protokollprofil."
     },
     "signature_rejected": {
       "message": "Die signierte Anfrage wurde abgelehnt. Sitzung, Protokollprofil und Uhrzeit prüfen; wiederholte Anmeldungen lösen keine ungeprüfte Signatur."
+    },
+    "secret_store_failed": {
+      "message": "Zugangsdaten konnten nicht sicher lokal gelesen oder gespeichert werden. secrets.yaml und Dateiberechtigungen prüfen."
     }
   },
   "issues": {
     "protocol_unsupported": {
       "title": "Aqara-Protokoll muss geprüft werden",
-      "description": "Fortlaufender Cloud-Zugriff ist gesperrt, weil die erforderlichen Protokoll- und Kontonachweise noch nicht bestätigt sind."
+      "description": "Dieser Zugriffsweg wird nicht unterstützt oder wurde nicht ausdrücklich erlaubt. Prüfe die Anmeldung und das Protokollprofil."
     },
     "auth_required": {
       "title": "Aqara-Sitzung erneuern",
-      "description": "Erneuere die Aqara-Sitzung für das eingerichtete Konto."
+      "description": "Anmeldung nicht möglich oder Sitzung nicht mehr gültig. Konto, Passwort und mögliche zusätzliche Prüfungen in der Aqara-App prüfen. Es werden keine Endlosversuche gestartet."
     },
     "cannot_connect": {
       "title": "Aqara-Cloudverbindung unterbrochen",
@@ -167,6 +195,10 @@
     "freshness_unverified": {
       "title": "Aktualität der Cloudwerte nicht bestätigt",
       "description": "Ein Cloudwert liegt vor; seine Aktualität als physische Messung ist noch nicht bestätigt."
+    },
+    "secret_store_failed": {
+      "title": "Lokalen Sitzungsspeicher prüfen",
+      "description": "Zugangsdaten konnten nicht sicher lokal gelesen oder gespeichert werden. secrets.yaml und Dateiberechtigungen prüfen."
     }
   }
 }

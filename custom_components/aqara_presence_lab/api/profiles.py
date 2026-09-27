@@ -67,6 +67,7 @@ class ProtocolProfile:
         "5.168.33019",
     )
     login_path: str = "/app/v1.0/lumi/user/login"
+    login_app_version: str = "3.0.0"
     subscribe_policy: str = "captured_true"
     error_map: tuple[tuple[int, str], ...] = ()
     validation_state: str = "candidate"
@@ -88,6 +89,43 @@ class ProtocolProfile:
 
     def require_production_ready(self, account_key: str | None = None) -> None:
         raise ProtocolUnsupported()
+
+    def require_experimental_login(self) -> None:
+        """Constrain the explicitly consented runtime to the implemented protocol.
+
+        This check is independent of the still-closed production evidence gate.
+        It cannot turn a different host, signing scheme or login into a supported
+        experimental account flow by reusing the profile's name.
+        """
+        candidate = CANDIDATE_PROFILE
+        fields = (
+            "id",
+            "version",
+            "source_reference",
+            "allowed_host",
+            "area",
+            "app_id",
+            "signing_strategy",
+            "login_strategy",
+            "body_serialization_policy",
+            "trait_read_path",
+            "login_path",
+            "login_app_version",
+            "subscribe_policy",
+            "tested_app_version",
+            "header_policy",
+            "read_paths",
+        )
+        if any(getattr(self, name) != getattr(candidate, name) for name in fields):
+            raise ProtocolUnsupported()
+
+    def is_confirmed_expiry(self, path: str, code: int) -> bool:
+        """A private qlink response established code108; other APIs stay unknown."""
+        try:
+            self.require_experimental_login()
+        except ProtocolUnsupported:
+            return False
+        return path == CANDIDATE_PROFILE.trait_read_path and type(code) is int and code == 108
 
 
 CANDIDATE_PROFILE = ProtocolProfile(

@@ -13,8 +13,9 @@ build/
 *.egg-info/
 private/
 captures/
+secrets.yaml
+.storage/
 *.har
 .env*
 !.env.example
 .DS_Store
-

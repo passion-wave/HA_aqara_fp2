@@ -1,5 +1,7 @@
 """Aqara Presence Lab: complementary read-only cloud observations."""
 
+from uuid import uuid4
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
@@ -14,9 +16,18 @@ from .api.errors import (
     TransportError,
 )
 from .api.models import AccountIdentity
-from .api.profiles import PROFILE, require_production
-from .const import CONF_REGION, CONF_USER_ID, DOMAIN, PLATFORMS
-from .coordinator import AqaraCoordinator, create_client
+from .const import (
+    CONF_CONSENT,
+    CONF_DEVICE_IDS,
+    CONF_INTERVAL,
+    CONF_REGION,
+    CONF_SESSION_STORE_ID,
+    CONF_USER_ID,
+    DOMAIN,
+    PLATFORMS,
+)
+from .coordinator import AqaraCoordinator, async_create_entry_client
+from .credential_store import CredentialStoreError, async_delete_session
 from .repairs import async_remove_issues, async_set_issue
 
 type AqaraConfigEntry = ConfigEntry[AqaraCoordinator]
@@ -26,16 +37,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: AqaraConfigEntry) -> boo
     """Validate identity, obtain fresh data and set up shared entity platforms."""
     identity = AccountIdentity(entry.data.get(CONF_REGION, "EU"), entry.data[CONF_USER_ID])
     try:
-        require_production(PROFILE, identity)
-    except ProtocolUnsupported as err:
-        async_set_issue(hass, entry.entry_id, "protocol_unsupported")
-        raise ConfigEntryError(
-            translation_domain=DOMAIN, translation_key="protocol_unsupported"
-        ) from err
-
-    try:
-        client = create_client(hass, dict(entry.data))
-    except AuthenticationRequired as err:
+        client = await async_create_entry_client(hass, entry)
+    except (AuthenticationRequired, CredentialStoreError, AccountMismatch) as err:
         raise ConfigEntryAuthFailed(
             translation_domain=DOMAIN, translation_key="auth_required"
         ) from err
@@ -52,7 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AqaraConfigEntry) -> boo
         ):
             raise AccountMismatch()
         await coordinator.async_config_entry_first_refresh()
-    except AuthenticationRequired as err:
+    except (AuthenticationRequired, CredentialStoreError) as err:
         await coordinator.async_shutdown()
         raise ConfigEntryAuthFailed(
             translation_domain=DOMAIN, translation_key="auth_required"
@@ -109,8 +112,25 @@ async def async_reload_entry(hass: HomeAssistant, entry: AqaraConfigEntry) -> No
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Remove only this entry's explanatory repairs."""
     async_remove_issues(hass, entry.entry_id)
+    if store_id := entry.data.get(CONF_SESSION_STORE_ID):
+        await async_delete_session(hass, store_id)
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Version 1 is the first released schema; refuse unknown major versions."""
-    return entry.version == 1 and entry.minor_version == 1
+    """Replace legacy token entries with a same-account login requirement."""
+    if entry.version == 2:
+        return entry.minor_version == 1
+    if entry.version != 1 or entry.minor_version != 1:
+        return False
+    data = {
+        key: entry.data[key]
+        for key in (CONF_REGION, CONF_USER_ID, CONF_DEVICE_IDS, CONF_INTERVAL)
+        if key in entry.data
+    }
+    if not data.get(CONF_USER_ID) or not data.get(CONF_DEVICE_IDS):
+        return False
+    data.update({CONF_CONSENT: False, CONF_SESSION_STORE_ID: uuid4().hex})
+    # Old user IDs remain an expected identity, never server identity evidence.
+    # Reauth requires login to return the same ID before it updates the entry.
+    hass.config_entries.async_update_entry(entry, data=data, version=2, minor_version=1)
+    return True

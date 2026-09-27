@@ -154,12 +154,19 @@ async def test_terminal_failure_stops_polling_and_liveness_preserves_reason(
 
 
 async def test_factory_shares_server_backoff_across_setup_and_flow(hass, aqara_entry):
-    from custom_components.aqara_presence_lab.coordinator import create_client
+    from unittest.mock import AsyncMock
 
-    first = create_client(hass, dict(aqara_entry.data))
+    from custom_components.aqara_presence_lab.coordinator import async_create_client
+
+    loader = AsyncMock(return_value=("synthetic-account", "synthetic-password"))
+    first = await async_create_client(
+        hass, credential_loader=loader, persist_session=AsyncMock(), consent=True
+    )
     first.limiter.failure(3600)
     await first.async_close()
-    next_attempt = create_client(hass, {**aqara_entry.data, "token": "new-session-token"})
+    next_attempt = await async_create_client(
+        hass, credential_loader=loader, persist_session=AsyncMock(), consent=True
+    )
     assert first.limiter is next_attempt.limiter
     with pytest.raises(RateLimited) as error:
         await next_attempt.limiter.async_claim()
@@ -187,4 +194,20 @@ async def test_manual_refresh_joins_poll_without_trailing_request(
     await coordinator.async_request_refresh()
     assert aqara_client.async_read_traits.await_count == 1
     assert coordinator._debounced_refresh._timer_task is None
+    await coordinator.async_shutdown()
+
+
+async def test_private_session_save_failure_is_retryable_not_new_login(
+    hass, aqara_entry, aqara_client
+):
+    from custom_components.aqara_presence_lab.api.errors import SessionPersistenceError
+
+    aqara_client.async_read_traits.side_effect = SessionPersistenceError()
+    coordinator = AqaraCoordinator(hass, aqara_entry, aqara_client)
+    with pytest.raises(UpdateFailed) as error:
+        await coordinator._async_update_data()
+    assert error.value.translation_key == "secret_store_failed"
+    assert coordinator.connection_status == "retry_wait"
+    assert coordinator.update_interval is not None
+    assert coordinator.failed_reads == 1
     await coordinator.async_shutdown()

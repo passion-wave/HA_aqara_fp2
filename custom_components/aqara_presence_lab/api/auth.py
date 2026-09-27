@@ -30,10 +30,15 @@ class SessionCredentials:
 
     token: str = field(repr=False)
     user_id: str = field(repr=False)
+    sys_type: str | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         _credential(self.token)
         _credential(self.user_id)
+        if self.sys_type not in (None, "0", "1") or (
+            self.sys_type is not None and type(self.sys_type) is not str
+        ):
+            raise AuthenticationRequired()
 
 
 class AuthProvider(Protocol):
@@ -105,8 +110,7 @@ def parse_login_response(payload: object) -> SessionCredentials:
 
 def encrypt_password(password: str, public_key: str) -> str:
     """Legacy protocol candidate using the established cryptography library."""
-    if not isinstance(password, str) or not password:
-        raise AuthenticationRequired("missing_credentials")
+    _credential(password)
     try:
         from cryptography.hazmat.primitives import serialization
         from cryptography.hazmat.primitives.asymmetric import padding, rsa
