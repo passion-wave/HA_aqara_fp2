@@ -65,6 +65,9 @@ Der bereinigte Schema-Prüfbericht ist dem Beta-Release beigefügt. Der
 bestätigt alle 321 Tests, Hassfest, Linting, Typprüfung und Secret-Scan.
 Nach der Öffentlichschaltung am 27.09.2026 besteht auch die
 [offizielle HACS-Remoteprüfung](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36302490172).
+Der [aktuelle Entwicklungslauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36339304871)
+bestätigt inzwischen alle 429 Tests einschließlich der ergänzten Import- und
+Fehlerdiagnoseprüfungen sowie die offiziellen HACS-/Hassfest-Prüfungen.
 Die frühere Sperre aufgrund privater Repository-Sichtbarkeit ist damit aufgehoben.
 Die Aqara-Live-Gates bleiben unabhängig davon offen. Im ersten GitHub-Lauf waren alle
 306 Tests erfolgreich, der zusätzliche Artifact-Upload scheiterte jedoch am
@@ -78,7 +81,7 @@ Das Release-ZIP wird separat an das GitHub-Release angehängt.
 |---|---|
 | G0 – Offline-Vertrag | Automatisiert geprüft |
 | G1 – eigener Original-Capture | **Bestanden am 27.09.2026**; exakter lokaler Signaturvergleich |
-| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden am 27.09.2026**; eine autorisierte Probe mit Anwendungsfehler abgelehnt |
+| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden am 27.09.2026**; vier autorisierte Proben, Sitzung vom Server abgelehnt |
 | G3 – App/Proxy unabhängig, Subscription und Frische | **Offen** |
 | G4 – Präsenzsemantik | **Offen**, kein Cloud-Occupancy-Sensor |
 | G5 – echte Sitzungserneuerung / Login | **Offen** |
@@ -91,13 +94,28 @@ Antwort besteht den Parservertrag. Der Request ist zum Prüfzeitpunkt älter als
 einen Tag. G1 bestätigt daher weder eine aktuell gültige Sitzung noch aktuelle
 Messwerte. Capture, Zugangsdaten und Rohantwort bleiben ausschließlich lokal.
 
-Am 27.09.2026 wurde nach ausdrücklicher Zustimmung **genau eine neu signierte
-G2-Leseprobe** gesendet. Der feste EU-Endpunkt antwortete mit HTTP 2xx und einem
-ganzzahligen Anwendungscode ungleich null. Das damalige CLI meldete nur
-`application_error`; den genauen HTTP-Status und Anwendungscode speicherte es
-nicht. Diese Details lassen sich nachträglich nicht rekonstruieren. Weder
-Tokenablauf noch Signaturfehler sind damit belegt. Es gab keinen erneuten
-Request, Login oder Hintergrundpoller und keinen erfolgreichen Live-Datenabruf.
+Am 27.09.2026 wurden insgesamt **vier ausdrücklich autorisierte, neu signierte
+G2-Leseproben** gesendet. Der Nutzer hat die Fortsetzung bis insgesamt zehn
+Versuche erlaubt; das bestehende Versuchsjournal und die Mindestabstände gelten
+weiter. Die erste Probe lieferte einen Anwendungsfehler, dessen genaue Nummer das
+damalige CLI nicht ausgab. Die zweite Probe lieferte HTTP 200 und Code 108.
+
+Zwei gezielte lokale Vergleichsproben prüften ausschließlich belegte Header aus
+dem erfolgreichen Original-Capture: zunächst zusätzlich `Sys-Type: 0`, danach
+den App-Kontext (`Sys-Type`, `User-Agent`, `Lang`, `PhoneId`, `Clientid`,
+`Phone-Model`, `Sys-Version`, `Accept-Language`). Body, Token und Geräteauswahl
+blieben gleich; Zeit, Nonce und Signatur wurden jedes Mal frisch erzeugt. Beide
+Vergleiche lieferten ebenfalls HTTP 200 und Code 108. In der vierten Antwort
+wurde außerdem exakt `msgDetails = "Token has expired"` bestätigt. Nur das
+Ergebnis dieses Vergleichs wurde ausgegeben, keine freien Servernachrichten.
+
+Damit ist die Sitzung dieses Captures serverseitig abgelehnt. Ein neu
+aufgezeichneter erfolgreicher App-Request mit aktueller Sitzung wird benötigt.
+Weitere identische Anfragen können keine Sitzung erneuern. Es gab keinen Login,
+keinen Hintergrundpoller und keinen erfolgreichen Live-Datenabruf. Die lokalen
+Headerexperimente wurden nicht als produktives Profil übernommen. Die
+Fehlerzuordnung bezieht sich auf diesen direkt beobachteten privaten Endpunkt;
+ein allgemeines Mapping fremder Open-API-Codes wird daraus nicht abgeleitet.
 
 An einem laufenden Home Assistant wurden keine Änderungen vorgenommen.
 Die Probe verwendete den Leseendpunkt und das originale `needSubscribe=true`;
