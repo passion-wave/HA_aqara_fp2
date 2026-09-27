@@ -1,5 +1,10 @@
 # Änderungen
 
+## Unveröffentlicht
+
+- Proxyman-HAR mit redundanten JSON-Parametern importieren, ohne Bodybytes zu verändern.
+- Erster echter lokaler G1-Signaturvergleich am 27.09.2026 bestanden; G2 und weitere Live-Nachweise bleiben offen.
+
 ## 0.1.0b1 — 2026-09-26
 
 Erste installierbare Labor-Beta für HACS-Custom-Repositories.
@@ -10,4 +15,3 @@ Erste installierbare Labor-Beta für HACS-Custom-Repositories.
 - HA-Einrichtung, Offline-Vorschau, Coordinator, Diagnose, Sensor-/Button-Plattformen und Repairs.
 - Deutsche und englische Oberfläche, Beispiel-Dashboard, Tests und GitHub-CI.
 - Produktives Polling, automatische Anmeldung und Cloud-Präsenz bleiben bis zu Live-Nachweisen gesperrt.
-

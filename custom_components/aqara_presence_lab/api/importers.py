@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import re
 import shlex
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
@@ -185,6 +186,40 @@ def import_package(data: str | bytes) -> ImportedCapture:
     )
 
 
+def _har_body(post: dict) -> bytes:
+    """Read text verbatim, allowing only Proxyman's redundant JSON mirror.
+
+    Some Proxyman HAR exports put the same JSON text into params[0].name
+    with an empty value. This is not a form body and must never be encoded
+    or merged. Any ambiguity between the two representations is rejected.
+    """
+    if "encoding" in post or "_encoding" in post:
+        raise ValueError
+    text = post["text"]
+    if not isinstance(text, str):
+        raise ValueError
+    if "params" in post:
+        mime = post.get("mimeType")
+        if not isinstance(mime, str) or not re.fullmatch(
+            r'application/json(?:[ \t]*;[ \t]*charset[ \t]*=[ \t]*(?:utf-8|"utf-8"))?',
+            mime.strip(" \t"),
+            flags=re.IGNORECASE,
+        ):
+            raise ValueError
+        params = post["params"]
+        if not isinstance(params, list):
+            raise ValueError
+        if params and (
+            len(params) != 1
+            or not isinstance(params[0], dict)
+            or set(params[0]) != {"name", "value"}
+            or params[0]["name"] != text
+            or params[0]["value"] != ""
+        ):
+            raise ValueError
+    return text.encode("utf-8")
+
+
 def import_har(data: str | bytes, *, entry_index: int | None = None) -> ImportedCapture:
     payload = strict_json(data)
     try:
@@ -206,9 +241,9 @@ def import_har(data: str | bytes, *, entry_index: int | None = None) -> Imported
         if request["method"] != "POST":
             raise ValueError
         post = request["postData"]
-        if post.get("encoding") or post.get("_encoding") or "params" in post:
+        if not isinstance(post, dict):
             raise ValueError
-        body = post["text"].encode("utf-8")
+        body = _har_body(post)
         headers = [(item["name"], item["value"]) for item in request["headers"]]
     except KeyError, TypeError, ValueError, AttributeError, UnicodeError:
         raise InvalidResponse("invalid_capture") from None

@@ -34,6 +34,13 @@ HTTPS-EU-Trait-Endpunkt akzeptiert. Andere Domains, Login-Antworten und fremde
 Header werden nicht übernommen. `postData.text` wird nicht neu serialisiert;
 eine HAR-Textdarstellung ist trotzdem keine Garantie für Originalbytes.
 
+Proxyman kann bei JSON zusätzlich `params` exportieren. Der Import akzeptiert
+dort eine leere Liste oder einen einzelnen Eintrag, dessen `name` exakt dem
+Bodytext entspricht und dessen `value` leer ist. Dafür muss der MIME-Typ
+`application/json` sein. Abweichende Parameter werden abgelehnt; zur Signierung
+wird ausschließlich der unveränderte Bodytext verwendet. Diese Unterstützung
+ist seit dem Entwicklungsstand nach 0.1.0b1 enthalten.
+
 Alternativ kann `import curl` eine gespeicherte **Textdatei** mit einem einfachen
 POSIX-cURL-Export lesen. Sie wird nie als Shellkommando ausgeführt. Nur URL,
 POST-Methode, eindeutige Header und ein direkter Body sind zulässig. Dateiimporte
@@ -85,4 +92,3 @@ Protokollprofils mit Vertragstest. Es gibt keinen generischen Endpoint-Caller.
 
 Kein Capturing, Login oder Liveaufruf gehört in öffentliche GitHub Actions.
 Für Support nur bereinigte Berichte verwenden, niemals `private/session.json`.
-

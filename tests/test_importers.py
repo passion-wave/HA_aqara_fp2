@@ -236,3 +236,121 @@ def test_continuation_only_with_unescaped_backslash(backslashes):
     command = "curl " + "\\" * backslashes + "\nnext"
     expected = "curl " + "\\" * (backslashes - 1) + "next" if backslashes % 2 else command
     assert _remove_shell_continuations(command) == expected
+
+
+@pytest.mark.parametrize("params_kind", ["empty", "mirror", "absent"])
+@pytest.mark.parametrize(
+    "mime",
+    ["application/json", "application/json; charset=utf-8", 'Application/JSON ; CHARSET="UTF-8"'],
+)
+def test_har_proxyman_json_params_preserves_exact_body_and_g1(params_kind, mime):
+    from custom_components.aqara_presence_lab.api.validation import signature_matches
+
+    original, signer = capture()
+    payload = json.loads(har_text())
+    request = payload["log"]["entries"][1]["request"]
+    # Synthetic Unicode, whitespace and CRLF exercise actual text-byte retention.
+    body_data = json.loads(original.body)
+    body_data["devices"][0]["deviceId"] = "synthetic-Gerät-测试"
+    text = json.dumps(body_data, ensure_ascii=False, indent=2).replace("\n", "\r\n") + "\r\n"
+    signature = signer.sign(
+        text.encode("utf-8"),
+        nonce=original.headers["nonce"],
+        time_ms=original.headers["time"],
+        token=original.headers["token"],
+    )
+    for header in request["headers"]:
+        if header["name"] == "sign":
+            header["value"] = signature
+    request["postData"] = {"mimeType": mime, "text": text}
+    if params_kind != "absent":
+        request["postData"]["params"] = (
+            [] if params_kind == "empty" else [{"name": text, "value": ""}]
+        )
+    imported = import_har(json.dumps(payload))
+    assert imported.body == text.encode("utf-8")
+    assert signature_matches(imported, signer)
+    assert not imported.wire_exact
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        None,
+        False,
+        "",
+        {},
+        [None],
+        ["text"],
+        [{"name": "different", "value": ""}],
+        [{"name": "text", "value": "real form data"}],
+        [{"name": "text"}],
+        [{"value": ""}],
+        [{"name": "text", "value": "", "fileName": "body.json"}],
+        [{"name": "text", "value": ""}, {"name": "text", "value": ""}],
+    ],
+)
+def test_har_rejects_real_ambiguous_or_malformed_params(params):
+    payload = json.loads(har_text())
+    post = payload["log"]["entries"][1]["request"]["postData"]
+    # Replace only the placeholder in these synthetic cases to isolate each rule.
+    if isinstance(params, list):
+        params = [
+            dict(item, name=post["text"])
+            if isinstance(item, dict) and item.get("name") == "text"
+            else item
+            for item in params
+        ]
+    post.update(mimeType="application/json", params=params)
+    with pytest.raises(InvalidResponse):
+        import_har(json.dumps(payload))
+
+
+@pytest.mark.parametrize(
+    "mime",
+    [
+        None,
+        False,
+        1,
+        "",
+        "text/plain",
+        "application/x-www-form-urlencoded",
+        "application/problem+json",
+        "application/jsonp",
+        "application/json; charset=latin-1",
+        "application/json; boundary=x",
+        "application/json\n",
+    ],
+)
+@pytest.mark.parametrize("empty", [False, True])
+def test_har_params_require_explicit_compatible_json_mime(mime, empty):
+    payload = json.loads(har_text())
+    post = payload["log"]["entries"][1]["request"]["postData"]
+    if mime is not None:
+        post["mimeType"] = mime
+    post["params"] = [] if empty else [{"name": post["text"], "value": ""}]
+    with pytest.raises(InvalidResponse):
+        import_har(json.dumps(payload))
+
+
+@pytest.mark.parametrize("encoding_key", ["encoding", "_encoding"])
+@pytest.mark.parametrize("encoding", ["base64", "gzip", "", None, False])
+def test_har_encoding_metadata_never_interpreted_as_plain_json(encoding_key, encoding):
+    payload = json.loads(har_text())
+    post = payload["log"]["entries"][1]["request"]["postData"]
+    post.update(mimeType="application/json", params=[{"name": post["text"], "value": ""}])
+    post[encoding_key] = encoding
+    with pytest.raises(InvalidResponse):
+        import_har(json.dumps(payload))
+
+
+@pytest.mark.parametrize("text", [None, False, 123, {}, []])
+def test_har_mirror_cannot_make_non_text_body_valid(text):
+    payload = json.loads(har_text())
+    payload["log"]["entries"][1]["request"]["postData"] = {
+        "mimeType": "application/json",
+        "text": text,
+        "params": [{"name": text, "value": ""}],
+    }
+    with pytest.raises(InvalidResponse):
+        import_har(json.dumps(payload))

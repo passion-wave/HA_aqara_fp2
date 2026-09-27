@@ -4,9 +4,9 @@
 |---|---|---|
 | P0 | Vier Fixtures aus vollständiger Spezifikation rekonstruiert | Kein separates Starter-ZIP vorhanden |
 | P1 | Datenmodell, Parser, Isolation, Datenqualität | Laufende Protokolländerungen beobachten |
-| P2 | Sicherer lokaler Import und Signaturvergleich | G1 mit eigenen Originalbytes |
+| P2 | Sicherer lokaler Import; G1 am 27.09.2026 mit eigenen Originalbytes bestanden | Keine Aussage zur aktuellen Sitzungsgültigkeit |
 | P3 | Async-Transport und bewusste einzelne Probe | G2 am eigenen EU-Konto |
-| P4 | Profilversion und Prüfstatus | G1–G3 fehlen; produktiver Pfad bleibt gesperrt |
+| P4 | Profilversion und Prüfstatus; G1 bestanden | G2–G3 fehlen; produktiver Pfad bleibt gesperrt |
 | P5 | AuthProvider und Login-Kandidat | Identitätsnachweis, realer Login / Ablauf und Einwilligung |
 | P6 | Config Flow, Coordinator, Entitäten | Geräteprüfung nach P4 |
 | P7 | Bereinigte Diagnose, Repairs, Dashboard, Dokumentation | Lokales Feedback zur Oberfläche |
@@ -28,4 +28,3 @@
 
 Ein Endpunkt-Erfolg ist keine Freigabe von G3–G6. Es gibt keine automatische
 Freischaltung durch einen Laborbericht und keinen Schalter, der fehlende Evidenz ersetzt.
-

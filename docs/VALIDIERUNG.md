@@ -18,7 +18,7 @@ validiert und anschließend mit dem neu implementierten gemeinsamen Kern geprüf
 
 ## Automatisierte Prüfung
 
-Lokaler Abschlusslauf: **321 Tests bestanden**, **93 % Coverage.py-Abdeckung
+Lokaler Abschlusslauf des Entwicklungsstands nach 0.1.0b1: **379 Tests bestanden**, **93 % Coverage.py-Abdeckung
 einschließlich Verzweigungen**, keine fehlgeschlagenen oder übersprungenen Tests.
 Mypy prüft alle 24 Integrationsmodule; Ruff bestätigt 59 formatierte Python-Dateien.
 Der reproduzierbare ZIP-Build und Gitleaks 8.30.1 sind ebenfalls erfolgreich.
@@ -37,7 +37,7 @@ Die verbindlichen Ausführungsergebnisse stehen in der
 | Signierung | Synthetischer Vektor, optionale Tokens, exakte Bytes, Unicode und Whitespace, sichere Fehler |
 | Transport | HTTP-Fehler vor JSON-Erfolg, Timeout, TLS, Redirects, Host/Proxy-Schutz, Cancellation |
 | Größenlimits | Tatsächlich gelesener Stream, gzip-Dekompression und komprimierte Größenbombe |
-| Import | HAR-Auswahl, minimale Pakete, konservatives cURL-Parsing ohne Ausführung, Dateirechte |
+| Import | HAR-Auswahl, Proxyman-JSON-Spiegel ohne Byteänderung, minimale Pakete, konservatives cURL-Parsing ohne Ausführung, Dateirechte |
 | Auth | Simulierter Loginvertrag, lokale RSA-Rundreise, Einwilligung, Kontomismatch, Single-Flight |
 | Rate-Limits | Monotone Cooldowns, Backoff/Jitter, Retry-After in Sekunden und als Datum, Probejournal |
 | Qualität | Ungeklärte Quellenzeit, bestätigte Semantik als Testfall, Zukunftszeit, fehlende Werte |
@@ -77,12 +77,19 @@ Das Release-ZIP wird separat an das GitHub-Release angehängt.
 | Gate | Status |
 |---|---|
 | G0 – Offline-Vertrag | Automatisiert geprüft |
-| G1 – eigener Original-Capture | **Offen**; Werkzeug vorhanden |
+| G1 – eigener Original-Capture | **Bestanden am 27.09.2026**; exakter lokaler Signaturvergleich |
 | G2 – eigener EU-Trait-Endpunkt | **Offen**; bewusste Einzelprobe vorhanden |
 | G3 – App/Proxy unabhängig, Subscription und Frische | **Offen** |
 | G4 – Präsenzsemantik | **Offen**, kein Cloud-Occupancy-Sensor |
 | G5 – echte Sitzungserneuerung / Login | **Offen** |
 | G6 – 24 Stunden, Neustart und Ausfall | **Nicht durchgeführt** |
+
+Der lokale G1-Vergleich mit einem eigenen HAR-Export ergibt `matched` für
+`sleepradar_eu_candidate_v1`, Profilversion 1. Die originalen Request-Body-Bytes
+bleiben unverändert. Der Export enthält zwei Geräte; auch die gespeicherte
+Antwort besteht den Parservertrag. Der Request ist zum Prüfzeitpunkt älter als
+einen Tag. G1 bestätigt daher weder eine aktuell gültige Sitzung noch aktuelle
+Messwerte. Capture, Zugangsdaten und Rohantwort bleiben ausschließlich lokal.
 
 Es wurden **keine Aqara-Liveaufrufe** und keine Änderungen an einem laufenden
 Home Assistant oder an Aqara-Geräten vorgenommen. Der erwartete lokale
@@ -106,4 +113,4 @@ Capture. Eine Profiländerung ohne Nachweis ist keine Freigabe.
 
 Diese Einschränkungen entsprechen ausdrücklich der gelieferten Spezifikation.
 Sie sind keine durch Mock-Tests erledigten Arbeitspakete. Der nächste Schritt ist
-G1 lokal mit einem frischen eigenen Export; Geheimnisse bleiben auf dem Rechner.
+G2: eine bewusst gestartete, neu signierte Einzelprobe am festen EU-Trait-Endpunkt.
