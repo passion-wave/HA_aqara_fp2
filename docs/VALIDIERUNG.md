@@ -26,9 +26,12 @@ Repository-Vertrag, Dependency-Check, reproduzierbares Release-ZIP und
 Gitleaks 8.30.1 sind erfolgreich. Der vollständige öffentliche Dateibestand
 wurde ohne private lokale Captures auf Geheimnisse geprüft.
 
-Die zusätzlichen Ergebnisse unter Linux sowie die offiziellen HACS- und
-Hassfest-Prüfungen stehen in der
-[GitHub-CI](https://github.com/passion-wave/HA_aqara_fp2/actions/workflows/ci.yml).
+Auch unter Linux bestanden **804 Tests** mit **94 % Abdeckung**. Die offiziellen
+HACS-/Hassfest-Prüfungen und Gitleaks sind im
+[Release-CI-Lauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36348723833)
+erfolgreich. Das veröffentlichte ZIP wurde erneut heruntergeladen und stimmt
+bytegenau mit dem lokal geprüften Paket überein (SHA-256:
+`f6b94412a8bfd8525ac93f1a6b8c3b9608ab9b4b2365e97d52e900393e9e35b7`).
 
 Testumgebung: **Home Assistant 2026.9.3**, **Python 3.14.6**,
 `pytest-homeassistant-custom-component==0.13.366`, `aiohttp==3.14.3`,
@@ -105,3 +108,27 @@ Die Freigabe bleibt experimentell. Ein erfolgreiches Lesen der Ressourcen
 bestätigt nur die tatsächlich erhaltenen Felder des jeweiligen Geräts.
 Koordinaten, Schlafberichte und unbekannte Rohcodes werden nicht hinzugedichtet.
 Aktueller Umfang: [Datenkatalog](DATEN.md).
+
+
+### Live-Abnahme der Zusatzabfragen
+
+Version **0.3.0b1** wurde am 27.09.2026 über HACS installiert und nach dem
+regulären HA-Neustart anhand der laufenden Integrationsdiagnose bestätigt.
+Die bestehende Sitzung wurde weiterverwendet; eine erneute Eingabe von
+Zugangsdaten war nicht erforderlich.
+
+| Beobachtung | Ergebnis |
+|---|---|
+| Konfiguration und bestehende Verbindung | Geladen, `ready`, kein veralteter Transportstatus |
+| Regulärer Trait-Abruf nach Neustart | Erfolgreich; keine fehlgeschlagene Abfrage zum Kontrollzeitpunkt |
+| Gerät A: Statusressourcen | 42 gültige Werte, 39 fehlende Felder |
+| Gerät A: Einstellungen | Alle sieben Werte geliefert |
+| Gerät B: Statusressourcen | 41 gültige Werte, 40 fehlende Felder |
+| Gerät B: Einstellungen | Alle sieben Werte geliefert |
+| Zusatzabfragen insgesamt | Vier erfolgreich, keine Fehler oder Parserkonflikte, Status `ready` |
+
+Diese Abnahme bestätigt beide zusätzlichen Endpunkte und die Gerätezuordnung
+für die tatsächlich gelieferten Felder. Sie ist keine Prüfung der fehlenden
+Felder in anderen Modi, kein Vergleich mit unabhängig beobachteten Personen
+und kein 24-Stunden-Test. Persönliche Gerätekennungen, Messwerte und private
+Sitzungsdaten werden in diesem öffentlichen Bericht nicht veröffentlicht.

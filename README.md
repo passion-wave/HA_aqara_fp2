@@ -12,8 +12,8 @@ und automatischer Neuanmeldung nach bestätigtem Sitzungsablauf.
 Die vorhandene lokale HomeKit-Anbindung bleibt unabhängig.
 
 > **0.3.0b1 erweitert die experimentelle Cloud-Integration.** Anmeldung und
-> Trait-Abruf wurden am eigenen EU-Konto mit zwei FP2 bestätigt. Zusätzliche
-> Ressourcenabfragen erschließen die vom jeweiligen Gerät gelieferten Werte.
+> Trait-Abruf sowie beide zusätzlichen Ressourcenendpunkte wurden am eigenen
+> EU-Konto mit zwei FP2 bestätigt. Neue Entitäten zeigen tatsächlich gelieferte Werte.
 > Modus, Firmware und Cloud-Antwort bestimmen den tatsächlichen Umfang;
 > Softwaretests ersetzen keine Prüfung der Messwerte oder des Dauerbetriebs.
 

@@ -12,7 +12,7 @@
 | P7 | Bereinigte Diagnose, Repairs, Dashboard, Dokumentation | Lokales Feedback zur Oberfläche |
 | P8 | Tests, HACS-Paket, CI und Beta-Release | Staging-HA, G5/G6 und 24-Stunden-Lauf |
 | P9 | Präsenz ausdrücklich ungemappt | G4: drei vollständige Anwesenheitszyklen je Gerät |
-| P10 | 81 Ressourcen und sieben Einstellungen aus fixierten Quellen implementiert | Tatsächliche Feldabdeckung, Position und Schlafberichte separat belegen |
+| P10 | 81 Ressourcen und sieben Einstellungen implementiert; beide Endpunkte mit zwei FP2 live bestätigt | Fehlende Felder in anderen Modi, Position und Schlafberichte separat belegen |
 
 ## Erforderliche Nachweise
 
