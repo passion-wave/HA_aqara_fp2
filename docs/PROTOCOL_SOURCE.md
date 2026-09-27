@@ -34,4 +34,4 @@ Die Ausgabe enthält Schemaerfolg, Geräteanzahl und ausdrückliche Hinweise auf
 
 ## Transport und Tests
 
-Alle Standardtests blockieren Netzwerk-Sockets. Getestet werden exakte gesendete Bytes, TLS-/Host-/Redirect-Regeln, Cancellation, Streamlimits einschließlich gzip-Bombe, Rate-Limits, unbekannte 401/403-Antworten, strikte Importe, Einwilligung und Single-Flight-Reauth. Ein HTTP-Erfolg oder synthetischer Signaturvektor zählt niemals als Gerätetest. Im Rahmen der Implementierung wurden keine Aqara-Liveaufrufe ausgeführt.
+Alle Standardtests blockieren Netzwerk-Sockets. Getestet werden exakte gesendete Bytes, TLS-/Host-/Redirect-Regeln, Cancellation, Streamlimits einschließlich gzip-Bombe, Rate-Limits, unbekannte 401/403-Antworten, strikte Importe, Einwilligung und Single-Flight-Reauth. Ein HTTP-Erfolg oder synthetischer Signaturvektor zählt niemals als Gerätetest. Am 27.09.2026 bestand der erste echte lokale G1-Vergleich. Die anschließend ausdrücklich autorisierte einzelne G2-Probe wurde mit einem Anwendungsfehler abgelehnt; Ursache und Live-Freigabe bleiben offen. Details stehen im [Validierungsbericht](VALIDIERUNG.md).

@@ -204,7 +204,7 @@ class AsyncAqaraClient:
                 if type(payload.get("code")) is not int:
                     raise InvalidResponse()
                 if payload["code"] != 0:
-                    raise ApplicationError(payload["code"])
+                    raise ApplicationError(payload["code"], http_status=status)
                 self.limiter.success()
                 return payload
         except asyncio.CancelledError:

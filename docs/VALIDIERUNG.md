@@ -18,7 +18,7 @@ validiert und anschließend mit dem neu implementierten gemeinsamen Kern geprüf
 
 ## Automatisierte Prüfung
 
-Lokaler Abschlusslauf des Entwicklungsstands nach 0.1.0b1: **379 Tests bestanden**, **93 % Coverage.py-Abdeckung
+Lokaler Abschlusslauf des Entwicklungsstands nach 0.1.0b1: **429 Tests bestanden**, **93 % Coverage.py-Abdeckung
 einschließlich Verzweigungen**, keine fehlgeschlagenen oder übersprungenen Tests.
 Mypy prüft alle 24 Integrationsmodule; Ruff bestätigt 59 formatierte Python-Dateien.
 Der reproduzierbare ZIP-Build und Gitleaks 8.30.1 sind ebenfalls erfolgreich.
@@ -78,7 +78,7 @@ Das Release-ZIP wird separat an das GitHub-Release angehängt.
 |---|---|
 | G0 – Offline-Vertrag | Automatisiert geprüft |
 | G1 – eigener Original-Capture | **Bestanden am 27.09.2026**; exakter lokaler Signaturvergleich |
-| G2 – eigener EU-Trait-Endpunkt | **Offen**; bewusste Einzelprobe vorhanden |
+| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden am 27.09.2026**; eine autorisierte Probe mit Anwendungsfehler abgelehnt |
 | G3 – App/Proxy unabhängig, Subscription und Frische | **Offen** |
 | G4 – Präsenzsemantik | **Offen**, kein Cloud-Occupancy-Sensor |
 | G5 – echte Sitzungserneuerung / Login | **Offen** |
@@ -91,8 +91,17 @@ Antwort besteht den Parservertrag. Der Request ist zum Prüfzeitpunkt älter als
 einen Tag. G1 bestätigt daher weder eine aktuell gültige Sitzung noch aktuelle
 Messwerte. Capture, Zugangsdaten und Rohantwort bleiben ausschließlich lokal.
 
-Es wurden **keine Aqara-Liveaufrufe** und keine Änderungen an einem laufenden
-Home Assistant oder an Aqara-Geräten vorgenommen. Der erwartete lokale
+Am 27.09.2026 wurde nach ausdrücklicher Zustimmung **genau eine neu signierte
+G2-Leseprobe** gesendet. Der feste EU-Endpunkt antwortete mit HTTP 2xx und einem
+ganzzahligen Anwendungscode ungleich null. Das damalige CLI meldete nur
+`application_error`; den genauen HTTP-Status und Anwendungscode speicherte es
+nicht. Diese Details lassen sich nachträglich nicht rekonstruieren. Weder
+Tokenablauf noch Signaturfehler sind damit belegt. Es gab keinen erneuten
+Request, Login oder Hintergrundpoller und keinen erfolgreichen Live-Datenabruf.
+
+An einem laufenden Home Assistant wurden keine Änderungen vorgenommen.
+Die Probe verwendete den Leseendpunkt und das originale `needSubscribe=true`;
+dessen Sitzungseffekt bleibt ungeklärt. Der erwartete lokale
 HA-Konfigurationsmount war nicht verfügbar. Die tatsächlich verwendete
 HA-Version des Nutzers ist daher nicht bestätigt; die genannte Version ist die
 getestete Entwicklungsbasis.
@@ -113,4 +122,5 @@ Capture. Eine Profiländerung ohne Nachweis ist keine Freigabe.
 
 Diese Einschränkungen entsprechen ausdrücklich der gelieferten Spezifikation.
 Sie sind keine durch Mock-Tests erledigten Arbeitspakete. Der nächste Schritt ist
-G2: eine bewusst gestartete, neu signierte Einzelprobe am festen EU-Trait-Endpunkt.
+G2 erneut mit einem aktuellen Original-Request und verbesserter bereinigter
+Fehlerdiagnose prüfen; jeder weitere Aufruf benötigt einen bewussten Start.

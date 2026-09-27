@@ -4,6 +4,8 @@
 
 - Proxyman-HAR mit redundanten JSON-Parametern importieren, ohne Bodybytes zu verändern.
 - Erster echter lokaler G1-Signaturvergleich am 27.09.2026 bestanden; G2 und weitere Live-Nachweise bleiben offen.
+- Bereinigte Diagnose um beobachteten HTTP-Status und begrenzte numerische Anwendungscodes erweitern; keine automatischen Wiederholungen oder Deutung unbekannter Codes.
+- Erste autorisierte G2-Probe dokumentiert: Anwendungsfehler, kein erfolgreicher Live-Abruf.
 
 ## 0.1.0b1 — 2026-09-26
 

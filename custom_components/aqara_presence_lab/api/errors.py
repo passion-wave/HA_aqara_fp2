@@ -49,8 +49,13 @@ class SignatureRejected(RequestRejected):
 class ApplicationError(RequestRejected):
     error_key = "application_error"
 
-    def __init__(self, code: int | None = None, *_details: object) -> None:
+    def __init__(
+        self, code: int | None = None, *_details: object, http_status: int | None = None
+    ) -> None:
         self.code = code if type(code) is int else None
+        self.http_status = (
+            http_status if type(http_status) is int and 100 <= http_status <= 599 else None
+        )
         super().__init__()
 
 

@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .errors import InvalidResponse, ProtocolUnsupported, RateLimited
+from .errors import ApplicationError, AqaraError, InvalidResponse, ProtocolUnsupported, RateLimited
 from .importers import ImportedCapture, strict_json
 from .models import AccountSnapshot
 from .profiles import EU_CANDIDATE_PROFILE, ProtocolProfile
@@ -84,6 +84,52 @@ def probe_report(
         "account_identity_verified": False,
         "freshness_verified": False,
     }
+
+
+def failure_report(
+    error: AqaraError,
+    *,
+    gate: str | None = None,
+    profile: ProtocolProfile | None = None,
+) -> dict[str, Any]:
+    """Allowlist failure metadata; never export raw messages or guess requests.
+
+    Application codes are opaque signed 32-bit integers for reporting only.
+    Values outside that project export bound are omitted, never truncated or
+    coerced. A status exists only when the transport explicitly observed it.
+    """
+    known_errors = {
+        "aqara_error",
+        "api_changed",
+        "response_too_large",
+        "protocol_unsupported",
+        "auth_required",
+        "account_mismatch",
+        "cannot_connect",
+        "request_rejected",
+        "access_denied",
+        "signature_rejected",
+        "application_error",
+        "rate_limited",
+    }
+    report: dict[str, Any] = {
+        "result": "failed",
+        "error": error.error_key
+        if type(error.error_key) is str and error.error_key in known_errors
+        else "aqara_error",
+        "production_allowed": False,
+    }
+    if isinstance(error, ApplicationError):
+        if type(error.code) is int and -(2**31) <= error.code <= 2**31 - 1:
+            report["application_code"] = error.code
+        if type(error.http_status) is int and 100 <= error.http_status <= 599:
+            report["http_status"] = error.http_status
+    if gate in ("G2", "G3"):
+        report["gate"] = gate
+    if profile is EU_CANDIDATE_PROFILE:
+        report["profile"] = profile.id
+        report["profile_version"] = profile.version
+    return report
 
 
 class ProbeBudget:

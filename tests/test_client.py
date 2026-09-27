@@ -323,3 +323,57 @@ async def test_login_unknown_or_malformed_response_sanitized_no_retry(body, erro
         assert secret not in str(caught.value) + repr(caught.value)
     assert len(api._session.calls) == 1
     assert (await api._auth.async_credentials()).token == "private-token"
+
+
+async def test_application_failure_records_observed_status_and_code_without_retry():
+    from custom_components.aqara_presence_lab.api.validation import failure_report
+
+    api = client(
+        Session(
+            Response(
+                b'{"code":765432,"message":"SECRET-token","requestId":"SECRET-id"}', status=202
+            )
+        )
+    )
+    with pytest.raises(ApplicationError) as caught:
+        await api.async_probe_capture(capture()[0], consent=True)
+    assert caught.value.code == 765432 and caught.value.http_status == 202
+    assert len(api._session.calls) == 1
+    report = failure_report(caught.value)
+    assert report["http_status"] == 202 and report["application_code"] == 765432
+    assert "SECRET" not in json.dumps(report) + str(caught.value) + repr(caught.value)
+
+
+@pytest.mark.parametrize(
+    ("status", "error_type"),
+    [
+        (301, RequestRejected),
+        (401, AccessDenied),
+        (403, AccessDenied),
+        (429, RateLimited),
+        (500, TransportError),
+    ],
+)
+async def test_non_success_http_status_never_becomes_application_error_metadata(status, error_type):
+    from custom_components.aqara_presence_lab.api.validation import failure_report
+
+    api = client(Session(Response(b'{"code":123,"message":"SECRET-token"}', status=status)))
+    with pytest.raises(error_type) as caught:
+        await api.async_probe_capture(capture()[0], consent=True)
+    report = failure_report(caught.value)
+    assert "application_code" not in report
+    assert "http_status" not in report  # This minimal extension handles ApplicationError only.
+    assert len(api._session.calls) == 1
+
+
+@pytest.mark.parametrize("code", ['"SECRET"', '"123"', "true", "false", "null", "1.5"])
+async def test_non_integer_application_code_not_coerced_into_failure_report(code):
+    from custom_components.aqara_presence_lab.api.validation import failure_report
+
+    api = client(Session(Response(('{"code":' + code + ',"message":"SECRET"}').encode())))
+    with pytest.raises(InvalidResponse) as caught:
+        await api.async_probe_capture(capture()[0], consent=True)
+    report = failure_report(caught.value)
+    assert "application_code" not in report and "http_status" not in report
+    assert "SECRET" not in json.dumps(report)
+    assert len(api._session.calls) == 1

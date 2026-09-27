@@ -72,6 +72,13 @@ frische Zeit, Nonce und Signatur; Body-Auswahl und `needSubscribe=true` bleiben
 erhalten. Dieses Flag kann unbekannte sitzungsbezogene Nebenwirkungen haben.
 Es werden keine Geräteeinstellungen verändert.
 
+Bei einem Anwendungsfehler kann der bereinigte Bericht zusätzlich
+`http_status` und `application_code` enthalten. Nur gültige numerische Werte
+aus diesen festgelegten Feldern werden übernommen; Servernachrichten und
+Antwortinhalte bleiben ausgeschlossen. Ein unbekannter Code wird nicht als
+Tokenablauf oder Signaturfehler interpretiert. Diese Diagnose wurde nach der
+ersten G2-Probe ergänzt; deren genauer Code ist nicht nachträglich verfügbar.
+
 Das Labor speichert unter `private/probe-budget.json` einen gesperrten lokalen
 Zähler: höchstens zehn Versuche je Untersuchungsschritt, mindestens 30 Sekunden
 Abstand pro Konto. Serverpausen werden berücksichtigt. Den Budgetstand nicht

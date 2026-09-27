@@ -5,7 +5,7 @@
 | P0 | Vier Fixtures aus vollständiger Spezifikation rekonstruiert | Kein separates Starter-ZIP vorhanden |
 | P1 | Datenmodell, Parser, Isolation, Datenqualität | Laufende Protokolländerungen beobachten |
 | P2 | Sicherer lokaler Import; G1 am 27.09.2026 mit eigenen Originalbytes bestanden | Keine Aussage zur aktuellen Sitzungsgültigkeit |
-| P3 | Async-Transport und bewusste einzelne Probe | G2 am eigenen EU-Konto |
+| P3 | Async-Transport; erste autorisierte G2-Probe mit Anwendungsfehler abgelehnt | Ursache klären; erfolgreicher G2-Abruf fehlt |
 | P4 | Profilversion und Prüfstatus; G1 bestanden | G2–G3 fehlen; produktiver Pfad bleibt gesperrt |
 | P5 | AuthProvider und Login-Kandidat | Identitätsnachweis, realer Login / Ablauf und Einwilligung |
 | P6 | Config Flow, Coordinator, Entitäten | Geräteprüfung nach P4 |

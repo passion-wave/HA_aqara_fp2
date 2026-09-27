@@ -33,6 +33,7 @@ from aqara_lab_api.profiles import PROFILE  # noqa: E402
 from aqara_lab_api.signing import CandidateSigner  # noqa: E402
 from aqara_lab_api.validation import (  # noqa: E402
     ProbeBudget,
+    failure_report,
     probe_report,
     signature_matches,
     signature_report,
@@ -127,7 +128,13 @@ def main(argv=None) -> int:
         return 1 if report.get("result") in ("not_matched", "no_selected_device_data") else 0
     except AqaraError as error:
         print(
-            json.dumps({"result": "failed", "error": error.error_key, "production_allowed": False})
+            json.dumps(
+                failure_report(
+                    error,
+                    gate=args.step if args.command == "probe" else None,
+                    profile=PROFILE if args.command == "probe" else None,
+                )
+            )
         )
         return 1
     except OSError, ValueError, TypeError, KeyError:
