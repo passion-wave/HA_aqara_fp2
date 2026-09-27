@@ -64,3 +64,30 @@ versucht werden. Tokenwechsel ändern weder Geräte- noch Entitätskennungen.
 Ein lokaler Signaturvergleich oder eine erfolgreiche Einrichtung beweist keinen
 24-Stunden-Betrieb und keine Präsenzsemantik. Die [Live-Gates](ROADMAP.md) bleiben
 als separate Nachweise dokumentiert.
+
+## Zusätzliche Ressourcen ab 0.3.0b1
+
+`api/resources.py` führt einen eigenen, begrenzten Ein-Gerät-Vertrag für
+`res/query` und `res/query/by/resourceId`. Feldkatalog und Enum-Tabellen stammen
+aus fixierten [MIT-lizenzierten Quellen](PROTOCOL_SOURCE.md). Parser und Entitäten
+übernehmen keine Nullersatzwerte aus fremden Implementierungen. Fremde Geräte,
+mehrdeutige Hüllen, widersprüchliche Duplikate, ungeeignete Typen und übergroße
+Antworten werden zurückgewiesen beziehungsweise isoliert.
+
+Der Kontoclient nutzt für Zusatzabfragen ausschließlich eine bereits geprüfte
+und gespeicherte Sitzung. Ein Resource-Fehler löst keine eigene Neuanmeldung aus:
+Die belegte Ablaufklassifikation gehört zum qlink-Endpunkt. Alle HTTP-Aufrufe
+teilen weiterhin denselben Mindestabstand und Server-Backoff.
+
+Der Coordinator startet nach erfolgreichem Trait-Abruf genau einen zusätzlichen
+Hintergrundlauf. Ergebnisse liegen getrennt nach `(device_id, query_kind)`;
+Listener werden nach jeder Gruppe aktualisiert. Eine neue Antwort ersetzt die
+Gruppe vollständig. Lokale monotone Empfangsfristen verhindern die unbegrenzte
+Wiederverwendung alter Antworten. Entladen beendet den Hintergrundlauf und
+wartende Clientoperationen. Sensor-Eigenschaften führen keine Netzaufrufe aus.
+
+Neue Entitäten entstehen dynamisch nach dem ersten gültigen Feld. Sie verwenden
+stabile Ressourcenkennungen und behalten ihre Gerätezuordnung. Schlafentitäten
+benötigen einen verfügbaren Moduswert aus derselben Ressourcengruppe. Zusätzliche
+Diagnosen exportieren nur Gruppenstatus, Fehlerklasse, Anzahl, Feldname, Typ und
+Zeitstempelvorhandensein; keine Rohwerte, Geräte-IDs oder Kontodaten.

@@ -2,7 +2,7 @@
 
 Der implementierte Kandidat wurde am 26.09.2026 erneut anhand des [festen SleepRadar-Quellstands](https://github.com/florianhorner/ha-fp2-sleep/blob/3af017fc995d5f05e65720ae5b1ed0690a04504c/aqara_fp2_sleep/aqara_fp2_sleep_poller.py) geprüft. Der Git-Blob ist unverändert `b48a4417deebd04cf4e6b3eb3d918300e6081d25`. Der gleiche Commit enthält eine MIT-Lizenz, Copyright 2026 Florian Horner; [Lizenzkopie](licenses/SleepRadar-MIT.txt) und [Hinweise](../THIRD_PARTY_NOTICES.md) liegen im Projekt.
 
-Die eigene Implementierung übernimmt den beschriebenen Signaturaufbau, Loginvertrag und die beiden öffentlichen Herstellerkonstanten. Sie übernimmt weder Poller-Code noch Enum-Tabellen oder Fehlercode-Vermutungen. Die Quelle benutzt `/app/v1.0/lumi/res/query`; ein erfolgreicher eigener Datenabruf über `/app/v1.0/lumi/app/qlink/trait/read` bleibt **live unbestätigt**. Auch Login und MFA-Verhalten sind nicht am Nutzerkonto geprüft. `cryptography==48.0.1` führt die RSA-PKCS1v15-Passwortverschlüsselung aus; ein gespeicherter Passwort-Hash wird nicht als Ersatzgeheimnis veröffentlicht.
+Die eigene Implementierung übernimmt den beschriebenen Signaturaufbau, Loginvertrag und die beiden öffentlichen Herstellerkonstanten. Sie übernimmt keinen Poller-Code und keine unbelegten Fehlercode-Vermutungen. Die Quelle benutzt `/app/v1.0/lumi/res/query`. Am 27.09.2026 wurden die eigene Anmeldung und der erfolgreiche Geräteabruf über `/app/v1.0/lumi/app/qlink/trait/read` mit zwei FP2 am EU-Konto bestätigt. MFA und echte Sitzungserneuerung bleiben separat zu prüfen. `cryptography==48.0.1` führt die RSA-PKCS1v15-Passwortverschlüsselung aus; ein gespeicherter Passwort-Hash wird nicht als Ersatzgeheimnis veröffentlicht.
 
 Ab 0.2.0b1 nutzt der bewusst aktivierte Anmeldeweg die belegten Loginheader:
 `Sys-Type: 1`, `Lang: en`, `User-Agent: pyAqara/1.0.0`, `App-Version: 3.0.0`
@@ -11,6 +11,34 @@ behalten den Systemtyp bei Folgeabrufen. Dieser Kontext ist getrennt vom
 iOS-Systemtyp `0` des historischen HAR. Passwörter werden über Secret-Referenzen
 geladen; der neue Kontoclient übernimmt Wiederanmeldung und atomare
 Sitzungsspeicherung nach Konto- und Geräteprüfung.
+
+## Ressourcenquelle ab 0.3.0b1
+
+Der zusätzliche Katalog ist gegen den fixierten Commit
+[`ca46546673d52ab819b3da5be7d98d4bb33f854a`](https://github.com/Serein-Zhang/ha-aqara-devices-V3-Fork/tree/ca46546673d52ab819b3da5be7d98d4bb33f854a)
+von `Serein-Zhang/ha-aqara-devices-V3-Fork` geprüft. `const.py` definiert die
+81 Statusattribute und sieben Einstellungs-IDs; `api.py` beschreibt die lesenden
+Endpunkte und die begrenzten Antwortformen; `fp2.py` liefert die genannten
+Einheiten und Enum-Zuordnungen. Die [MIT-Lizenz](licenses/AqaraDevices-MIT.txt)
+liegt auch im Runtime-Paket; alle Blob-IDs stehen in den
+[Third-party notices](../THIRD_PARTY_NOTICES.md).
+
+- Status: `/app/v1.0/lumi/res/query`
+- Einstellungen: `/app/v1.0/lumi/res/query/by/resourceId`
+- Jeweils ein `subjectId` pro Aufruf und eine gemeinsame `options`-Liste;
+  keine unbelegte Mehrgeräte-Bündelung.
+- Header und Signatur folgen dem bestehenden Kontoprofil. Die qlink-spezifische
+  Ablaufzuordnung wird nicht auf neue Endpunkte übertragen.
+- Keine Aufrufe von Schreib-, Historien- oder Steuerungsendpunkten.
+- Keine Nullersatzwerte aus dem Quellprojekt: fehlend, null und ungültig bleiben
+  getrennt. Fremde Geräte und widersprüchliche Antworten werden isoliert.
+- Quellenzeitstempel bleiben ohne gesicherten Einheitenvertrag uninterpretiert.
+  Physische Aktualität bleibt `unverified`.
+
+Die neue Enum-Quelle belegt die Darstellung gemeldeter Ressourcen, keine eigene
+physische Prüfung. Insbesondere bleibt das qlink-Präsenzmapping unverändert
+ungeklärt. Umfang, Modusabhängigkeit und bewusst nicht erschlossene Felder sind
+im [Datenkatalog](DATEN.md) beschrieben.
 
 ## Befehle
 
@@ -42,4 +70,4 @@ Die Ausgabe enthält Schemaerfolg, Geräteanzahl und ausdrückliche Hinweise auf
 
 ## Transport und Tests
 
-Alle Standardtests blockieren Netzwerk-Sockets. Getestet werden exakte gesendete Bytes, TLS-/Host-/Redirect-Regeln, Cancellation, Streamlimits einschließlich gzip-Bombe, Rate-Limits, unbekannte 401/403-Antworten, strikte Importe, Einwilligung und Single-Flight-Reauth. Ein HTTP-Erfolg oder synthetischer Signaturvektor zählt niemals als Gerätetest. Am 27.09.2026 bestand der erste echte lokale G1-Vergleich. Vier anschließend autorisierte G2-Proben blieben erfolglos; die letzte bestätigte am privaten Endpunkt Code 108 mit `msgDetails = "Token has expired"`. Für weitere Proben wird eine aktuelle App-Sitzung benötigt; sechs der autorisierten zehn Versuche verbleiben. Details stehen im [Validierungsbericht](VALIDIERUNG.md).
+Alle Standardtests blockieren Netzwerk-Sockets. Getestet werden exakte gesendete Bytes, TLS-/Host-/Redirect-Regeln, Cancellation, Streamlimits einschließlich gzip-Bombe, Rate-Limits, unbekannte 401/403-Antworten, strikte Importe, Einwilligung und Single-Flight-Reauth. Ein HTTP-Erfolg oder synthetischer Signaturvektor zählt niemals als Gerätetest. Am 27.09.2026 bestand der erste echte lokale G1-Vergleich. Vier anschließend autorisierte G2-Proben blieben erfolglos; die letzte bestätigte am privaten Endpunkt Code 108 mit `msgDetails = "Token has expired"`. Der inzwischen erfolgreiche reguläre Loginweg erzeugt eine neue geprüfte Sitzung. Das frühere Laborjournal bleibt mit vier Versuchen unverändert; der autorisierte Integrationsbetrieb ist ein eigener Ablauf. Details stehen im [Validierungsbericht](VALIDIERUNG.md).

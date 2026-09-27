@@ -41,6 +41,7 @@ async def test_shared_cooldown_backoff_and_server_pause():
     with pytest.raises(RateLimited) as error:
         await limiter.async_claim()
     assert error.value.retry_after == 30
+    assert error.value.request_sent is False
     assert limiter.failure() == 60
     assert limiter.failure() == 120
     assert limiter.failure(9000) == 9000
@@ -51,3 +52,11 @@ async def test_shared_cooldown_backoff_and_server_pause():
     for _ in range(20):
         limiter.failure()
     assert limiter.retry_after == 3600
+
+
+def test_request_sent_marker_is_optional_exact_bool_and_never_in_exception_text():
+    assert RateLimited().request_sent is False
+    assert RateLimited(30).request_sent is False
+    assert RateLimited(30, request_sent=True).request_sent is True
+    assert RateLimited(30, request_sent="SECRET").request_sent is False
+    assert "SECRET" not in repr(RateLimited(30, request_sent="SECRET"))

@@ -5,14 +5,14 @@
 | P0 | Vier Fixtures aus vollständiger Spezifikation rekonstruiert | Kein separates Starter-ZIP vorhanden |
 | P1 | Datenmodell, Parser, Isolation, Datenqualität | Laufende Protokolländerungen beobachten |
 | P2 | Sicherer lokaler Import; G1 am 27.09.2026 mit eigenen Originalbytes bestanden | Keine Aussage zur aktuellen Sitzungsgültigkeit |
-| P3 | Async-Transport; vier autorisierte G2-Proben, Server bestätigt abgelehnte Sitzung | Anmeldung für aktuelle Sitzung; erfolgreicher G2-Abruf fehlt |
-| P4 | G1 bestanden; explizit aktivierbarer experimenteller Anmeldeweg in 0.2.0b1 | Erfolgreiche G2-/G3-Prüfung am eigenen Konto |
-| P5 | Login, privater Sitzungsspeicher, Secret-Referenzen und automatische Neuanmeldung implementiert | Reale Anmeldung und Sitzungserneuerung am Nutzerkonto |
-| P6 | Vollständige Einrichtung, Reauth, Coordinator, Entitäten und Lebenszyklus | Erstinstallation und Betrieb im Nutzer-HA |
+| P3 | Async-Transport; regulärer Trait-Abruf mit zwei Geräten erfolgreich | Unabhängige physische Wertänderung prüfen |
+| P4 | G1 und regulärer G2-Abruf bestanden; experimenteller Betrieb | G3-Prüfung am eigenen Konto |
+| P5 | Reale Anmeldung, privater Sitzungsspeicher und Secret-Referenzen funktionieren | Echte Sitzungserneuerung am Nutzerkonto |
+| P6 | Einrichtung und Geräteabruf im Nutzer-HA bestätigt | Verhalten über längeren Betrieb beobachten |
 | P7 | Bereinigte Diagnose, Repairs, Dashboard, Dokumentation | Lokales Feedback zur Oberfläche |
 | P8 | Tests, HACS-Paket, CI und Beta-Release | Staging-HA, G5/G6 und 24-Stunden-Lauf |
 | P9 | Präsenz ausdrücklich ungemappt | G4: drei vollständige Anwesenheitszyklen je Gerät |
-| P10 | Keine erfundenen Zusatzfähigkeiten | Separate Captures für Schlaf / Position / Anzahl |
+| P10 | 81 Ressourcen und sieben Einstellungen aus fixierten Quellen implementiert | Tatsächliche Feldabdeckung, Position und Schlafberichte separat belegen |
 
 ## Erforderliche Nachweise
 
@@ -27,7 +27,7 @@
    Neustart. Erst danach Produktionsfreigabe dokumentieren.
 
 Ein Endpunkt-Erfolg ist keine Freigabe von G3–G6. Auf ausdrücklichen Nutzerauftrag
-ermöglicht 0.2.0b1 die Anmeldung und den experimentellen Betrieb vor Abschluss
+ermöglicht diese Beta die Anmeldung und den experimentellen Betrieb vor Abschluss
 dieser Langzeitnachweise. Die Zustimmung erlaubt die jeweiligen Kontozugriffe;
 sie verändert keinen Evidenzstatus. Eine Anmeldung wird erst beim bewussten
 Start ausgeführt, nicht beim Installieren der Integration.

@@ -36,13 +36,22 @@ from .errors import (
 )
 from .importers import HOST, MAX_BODY_BYTES, PATH, ImportedCapture, request_paths, strict_json
 from .logging import log_event
-from .models import AccountIdentity, AccountSnapshot
+from .models import AccountIdentity, AccountSnapshot, DeviceSelection
 from .parsing import parse_response
 from .profiles import EU_CANDIDATE_PROFILE, ProtocolProfile
 from .rate_limit import AccountRateLimiter, SystemClock, parse_retry_after
+from .resources import (
+    RESOURCE_OPTIONS,
+    SETTINGS_OPTIONS,
+    DeviceResources,
+    parse_resource_response,
+    parse_resource_settings_response,
+)
 from .signing import CandidateSigner, serialize_body
 
 LOGIN_PATH = "/app/v1.0/lumi/user/login"
+RESOURCE_PATH = "/app/v1.0/lumi/res/query"
+RESOURCE_SETTINGS_PATH = "/app/v1.0/lumi/res/query/by/resourceId"
 
 
 class AsyncAqaraClient:
@@ -153,6 +162,40 @@ class AsyncAqaraClient:
             raise ProtocolUnsupported()
         return await self._read_body(capture.body, self.profile)
 
+    async def async_read_resources(
+        self, device_id: str, *, credentials: SessionCredentials | None = None
+    ) -> DeviceResources:
+        """One source-backed single-subject query for the complete resource list."""
+        return await self._read_resources(device_id, credentials, settings=False)
+
+    async def async_read_resource_settings(
+        self, device_id: str, *, credentials: SessionCredentials | None = None
+    ) -> DeviceResources:
+        """Read seven documented configuration resources; never write settings."""
+        return await self._read_resources(device_id, credentials, settings=True)
+
+    async def _read_resources(
+        self, device_id: str, credentials: SessionCredentials | None, *, settings: bool
+    ) -> DeviceResources:
+        self._require_runtime(self.profile)
+        try:
+            DeviceSelection((device_id,))
+        except ValueError, TypeError:
+            raise InvalidResponse() from None
+        if credentials is None:
+            if self._auth is None:
+                raise AuthenticationRequired()
+            credentials = await self._auth.async_credentials()
+        options = SETTINGS_OPTIONS if settings else RESOURCE_OPTIONS
+        path = self.profile.resource_settings_path if settings else self.profile.resource_query_path
+        body = serialize_body({"data": [{"options": list(options), "subjectId": device_id}]})
+        started = self.clock.now()
+        payload = await self._post(path, body, credentials, self.profile)
+        parser = parse_resource_settings_response if settings else parse_resource_response
+        return parser(
+            payload, device_id=device_id, requested_at=started, received_at=self.clock.now()
+        )
+
     async def async_validate_credentials(self) -> AccountIdentity:
         self._require_runtime(self.profile)
         # Trait reads alone do not establish that the supplied Userid belongs to
@@ -189,7 +232,7 @@ class AsyncAqaraClient:
             self._closed
             or profile.allowed_host != HOST
             or profile.area != "EU"
-            or path not in (PATH, LOGIN_PATH)
+            or path not in (PATH, LOGIN_PATH, RESOURCE_PATH, RESOURCE_SETTINGS_PATH)
             or getattr(self._session, "trust_env", False)
         ):
             raise ProtocolUnsupported()
@@ -227,7 +270,12 @@ class AsyncAqaraClient:
         )
         started = self.clock.monotonic()
         status = None
-        operation = "login" if path == LOGIN_PATH else "trait_read"
+        operation = {
+            LOGIN_PATH: "login",
+            PATH: "trait_read",
+            RESOURCE_PATH: "resource_read",
+            RESOURCE_SETTINGS_PATH: "resource_settings_read",
+        }[path]
         log_event("request_started", operation=operation)
         try:
             async with self._session.post(
@@ -242,7 +290,7 @@ class AsyncAqaraClient:
                 status = response.status
                 if status == 429:
                     delay = parse_retry_after(response.headers.get("Retry-After"), self.clock.now())
-                    raise RateLimited(self.limiter.failure(delay))
+                    raise RateLimited(self.limiter.failure(delay), request_sent=True)
                 if status >= 500:
                     self.limiter.failure()
                     raise TransportError()

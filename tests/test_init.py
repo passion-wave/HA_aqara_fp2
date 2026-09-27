@@ -45,7 +45,7 @@ async def test_setup_unload_reload_no_homekit_changes(hass, aqara_entry, aqara_c
                 er.async_get(hass), aqara_entry.entry_id
             )
         }
-        assert len(entities_before) == 15  # 4 account + 5 per device + 1 observed fall field
+        assert len(entities_before) == 16  # 5 account + 5 per device + 1 observed fall field
         assert hass.states.get("binary_sensor.existing_homekit_presence").state == "on"
         assert await hass.config_entries.async_reload(aqara_entry.entry_id)
         await hass.async_block_till_done()

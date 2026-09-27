@@ -11,11 +11,11 @@ Anmeldung am europäischen Aqara-Konto, lokaler Speicherung in `secrets.yaml`
 und automatischer Neuanmeldung nach bestätigtem Sitzungsablauf.
 Die vorhandene lokale HomeKit-Anbindung bleibt unabhängig.
 
-> **0.2.0b1 ist eine experimentelle Anmelde-Beta.** Sie bietet einen vollständigen
-> Einrichtungs- und Wiederanmeldeweg. Der Login basiert auf dem belegten
-> SleepRadar-Protokoll; seine reale Funktion am jeweiligen Konto wird erst bei
-> der bewusst gestarteten Anmeldung geprüft. Softwaretests ersetzen keine
-> Live-Abnahme oder Langzeitprüfung.
+> **0.3.0b1 erweitert die experimentelle Cloud-Integration.** Anmeldung und
+> Trait-Abruf wurden am eigenen EU-Konto mit zwei FP2 bestätigt. Zusätzliche
+> Ressourcenabfragen erschließen die vom jeweiligen Gerät gelieferten Werte.
+> Modus, Firmware und Cloud-Antwort bestimmen den tatsächlichen Umfang;
+> Softwaretests ersetzen keine Prüfung der Messwerte oder des Dauerbetriebs.
 
 ## Funktionen
 
@@ -24,14 +24,18 @@ Die vorhandene lokale HomeKit-Anbindung bleibt unabhängig.
 - Automatische Neuanmeldung bei bestätigtem Tokenablauf mit Prüfung derselben Kontoidentität und des Gerätezugriffs.
 - Ein gemeinsamer Datenabruf pro Konto, konfigurierbares Intervall und manuelle Aktualisierung mit gemeinsamem Mindestabstand.
 - Zuletzt gemeldete Helligkeit, numerische Rohcodes, Verbindungsstatus und Datenqualität.
+- Zusätzlicher Katalog mit 81 Statusfeldern und sieben lesbaren Einstellungen: Schlafwerte, Gerätemodus, Personenzählung, bis zu 30 Zonen und Diagnosedaten.
+- Entitäten werden erst nach einem gelieferten Wert angelegt; Zonen und Einstellungen sind zunächst deaktiviert.
+- Schlaf- und Vitalwerte werden nur bei gemeldetem Schlafmodus angezeigt; getrennte Verfügbarkeit je Abfrage und Gerät.
 - Bereinigte Diagnose und Ereignislogs ohne Zugangsdaten, signierte Header oder Rohantworten.
 - Deutsche und englische Oberfläche; Reauth und Geräteänderungen erhalten die bestehende Kontoidentität.
 
 Die Einrichtung benötigt die Geräte-IDs der gewünschten FP2. Eine automatische
 Gerätesuche über einen unbelegten Endpunkt wird nicht vorausgesetzt. Die
-Cloud-Präsenzcodes haben noch keine bestätigte Bedeutung; Personenanzahl,
-Koordinaten und Schlafdaten sind nicht freigegeben. Ein HTTP-Erfolg beweist
-keine neue physische Messung.
+zusätzlichen Werte sind [im Datenkatalog](docs/DATEN.md) nach Zweck, Einheit und
+Grenzen erklärt. Unbekannte qlink-Präsenzcodes bleiben Rohcodes. Für genaue
+Personenkoordinaten und Schlafberichte liegt noch kein belegter Abfragevertrag
+dieser privaten API vor. Ein HTTP-Erfolg beweist keine neue physische Messung.
 
 ## Installation und Start
 
@@ -39,7 +43,7 @@ Getestete Basis: **Home Assistant 2026.9.3**, Python 3.14, Aqara-Region **EU**.
 
 1. In HACS als benutzerdefiniertes Repository hinzufügen:
    `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
-2. **Aqara Presence Lab**, Version **0.2.0b1**, herunterladen und Home Assistant neu starten.
+2. **Aqara Presence Lab**, Version **0.3.0b1**, herunterladen und Home Assistant neu starten.
 3. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **Aqara Presence Lab** suchen.
 4. Den Anmeldeweg öffnen, automatische Anmeldung erlauben und Zugangsdaten lokal eingeben oder vorhandene Secret-Namen angeben.
 5. Geräte-IDs eintragen, die Verbindungsprüfung abwarten und Geräte sowie Intervall auswählen.
@@ -57,6 +61,7 @@ Die Integration gibt diese weder in Logs noch in Diagnoseexporten aus.
 | Dokument | Inhalt |
 |---|---|
 | [Installation und Betrieb](docs/INSTALLATION.md) | Einrichtung, HACS-Update, Reauth und Entfernen |
+| [Daten und Entitäten](docs/DATEN.md) | Verfügbare Gruppen, Modi, Einheiten und fehlende Werte |
 | [Anmeldung und Speicherung](docs/AUTHENTICATION.md) | Secret-Einträge, Sitzungswechsel und Fehlerverhalten |
 | [Logs und Diagnose](docs/LOGGING.md) | Ereignisse, Logstufen und bereinigte Supportdaten |
 | [Validierung](docs/VALIDIERUNG.md) | Tatsächliche Tests und offene Live-Nachweise |
@@ -64,7 +69,7 @@ Die Integration gibt diese weder in Logs noch in Diagnoseexporten aus.
 | [Architektur](docs/ARCHITECTURE.md) | Datenfluss, Identität und Lebenszyklus |
 | [Roadmap](docs/ROADMAP.md) | Ausstehende Protokoll- und Langzeitprüfungen |
 | [Dashboard](examples/dashboard.yaml) | Standardkarten mit Platzhalter-Entitäten |
-| [Protokollquelle](docs/PROTOCOL_SOURCE.md) | Fixierter SleepRadar-Quellstand und Lizenz |
+| [Protokollquelle](docs/PROTOCOL_SOURCE.md) | Fixierte Quellstände und Lizenzen |
 | [Ursprünglicher Auftrag](docs/IMPLEMENTIERUNG.md) | Unveränderte Spezifikation und Fixtures |
 
 ## Entwicklung

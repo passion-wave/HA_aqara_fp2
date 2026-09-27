@@ -67,6 +67,8 @@ class ProtocolProfile:
         "5.168.33019",
     )
     login_path: str = "/app/v1.0/lumi/user/login"
+    resource_query_path: str = "/app/v1.0/lumi/res/query"
+    resource_settings_path: str = "/app/v1.0/lumi/res/query/by/resourceId"
     login_app_version: str = "3.0.0"
     subscribe_policy: str = "captured_true"
     error_map: tuple[tuple[int, str], ...] = ()
@@ -110,6 +112,8 @@ class ProtocolProfile:
             "body_serialization_policy",
             "trait_read_path",
             "login_path",
+            "resource_query_path",
+            "resource_settings_path",
             "login_app_version",
             "subscribe_policy",
             "tested_app_version",

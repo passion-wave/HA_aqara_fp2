@@ -16,7 +16,7 @@ ist bestanden; die Installation als benutzerdefiniertes Repository ist verfügba
 HACS öffnen, Menü **Benutzerdefinierte Repositories**, Repository-URL
 `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
 Anschließend Aqara Presence Lab herunterladen und HA regulär neu starten.
-Im Versionsdialog die Anmelde-Beta **0.2.0b1** auswählen.
+Im Versionsdialog die Daten-Beta **0.3.0b1** auswählen.
 
 Unter **Geräte & Dienste → Integration hinzufügen → Aqara Presence Lab** den
 Anmeldeweg öffnen. Die Zustimmung aktiviert den experimentellen Cloud-Zugriff
@@ -59,6 +59,15 @@ einen Fortschritt an. Serverpausen können eine spätere Wiederholung erfordern.
 Die Geräte-IDs stammen beispielsweise aus einem lokalen Aqara-Mitschnitt. Eine
 Zeile pro Gerät eingeben; keine Tokens oder vollständigen Requests in dieses Feld
 kopieren. Details: [Anmeldung und Speicherung](AUTHENTICATION.md).
+
+## Zusätzliche Daten nach dem Update
+
+Version 0.3.0b1 übernimmt das bestehende Konfigurationsschema und die lokale
+Sitzung. Nach dem Update und Neustart erscheinen tatsächlich gelieferte
+Ressourcen bei den vorhandenen FP2. Der erste Hintergrundlauf benötigt
+mehrere Minuten. Zonen und Einstellungen sind zunächst deaktiviert; nur die
+benötigten Entitäten einschalten. Umfang und Status sind im
+[Datenkatalog](DATEN.md) erklärt.
 
 ## Diagnose
 

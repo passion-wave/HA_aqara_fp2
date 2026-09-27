@@ -78,6 +78,7 @@ class SessionPersistenceError(AqaraError):
 class RateLimited(TransportError):
     error_key = "rate_limited"
 
-    def __init__(self, retry_after: float | None = None) -> None:
+    def __init__(self, retry_after: float | None = None, *, request_sent: bool = False) -> None:
         self.retry_after = retry_after
+        self.request_sent = request_sent is True
         super().__init__()

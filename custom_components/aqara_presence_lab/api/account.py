@@ -24,6 +24,7 @@ from .logging import log_event
 from .models import AccountIdentity, AccountSnapshot, DeviceSelection
 from .profiles import ProtocolProfile
 from .rate_limit import AccountRateLimiter
+from .resources import DeviceResources
 
 CredentialLoader = Callable[[], Awaitable[tuple[str, str]]]
 SessionWriter = Callable[[SessionCredentials], Awaitable[None]]
@@ -78,6 +79,7 @@ class ManagedAqaraClient:
         self._expired_generation: str | None = None
         self._task: asyncio.Task[Any] | None = None
         self._task_key: tuple | None = None
+        self._resource_waiters: set[asyncio.Task[Any]] = set()
         self._closed = False
         self._client.set_session(initial_session)
 
@@ -116,7 +118,14 @@ class ManagedAqaraClient:
             # Join that work; different simultaneous device batches stay bounded.
             if key[0] == "read" and self._task_key and self._task_key[0] == "read":
                 raise RateLimited(self.limiter.retry_after)
-            await running
+            running_key = self._task_key
+            try:
+                await running
+            except AqaraError:
+                # An optional resource error belongs only to its own caller.
+                # It must not poison a foreground trait read waiting its turn.
+                if not running_key or running_key[0] not in ("resources", "resource_settings"):
+                    raise
             self._require_open()
         task = asyncio.create_task(operation())
         self._task, self._task_key = task, key
@@ -142,6 +151,61 @@ class ManagedAqaraClient:
         if identity is None:
             raise AuthenticationRequired()
         return identity
+
+    async def async_read_resources(self, device_id: str) -> DeviceResources:
+        return await self._supplementary(device_id, settings=False)
+
+    async def async_read_resource_settings(self, device_id: str) -> DeviceResources:
+        return await self._supplementary(device_id, settings=True)
+
+    async def _supplementary(self, device_id: str, *, settings: bool) -> DeviceResources:
+        self._require_open()
+        try:
+            DeviceSelection((device_id,))
+        except ValueError, TypeError:
+            raise InvalidResponse() from None
+        if self._session is None:
+            # A supplementary endpoint never initiates login or validates a
+            # candidate which has not yet passed the mandatory trait read.
+            raise AuthenticationRequired()
+        waiter = asyncio.current_task()
+        if waiter is not None:
+            self._resource_waiters.add(waiter)
+        try:
+            # Let foreground polling proceed during this background cooldown.
+            key = ("resource_settings" if settings else "resources", device_id)
+            while True:
+                await self._wait_cooldown()
+                try:
+                    return await self._shared(
+                        key, lambda: self._resource_query(device_id, settings=settings)
+                    )
+                except RateLimited as error:
+                    # A foreground request may have claimed the slot while we
+                    # woke up. Preserve this group and await the next local slot.
+                    # No HTTP request was sent; a server 429 is never retried.
+                    if (
+                        error.request_sent
+                        or error.retry_after is None
+                        or not 0 < error.retry_after <= MAX_AUTH_WAIT
+                    ):
+                        raise
+        finally:
+            if waiter is not None:
+                self._resource_waiters.discard(waiter)
+
+    async def _resource_query(self, device_id: str, *, settings: bool) -> DeviceResources:
+        credentials = self._session
+        if credentials is None:
+            raise AuthenticationRequired()
+        operation = (
+            self._client.async_read_resource_settings
+            if settings
+            else self._client.async_read_resources
+        )
+        # The low-level auth provider may hold a pending renewal candidate.
+        # Resource reads explicitly use only the last accepted session instead.
+        return await operation(device_id, credentials=credentials)
 
     async def _wait_cooldown(self) -> None:
         delay = self.limiter.retry_after
@@ -285,6 +349,13 @@ class ManagedAqaraClient:
 
     async def async_close(self) -> None:
         self._closed = True
+        waiters = tuple(
+            task for task in self._resource_waiters if task is not asyncio.current_task()
+        )
+        for waiter in waiters:
+            waiter.cancel()
+        if waiters:
+            await asyncio.gather(*waiters, return_exceptions=True)
         task = self._task
         if task is not None and not task.done():
             task.cancel()

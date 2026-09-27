@@ -42,3 +42,14 @@ bereinigten Bericht enthalten sein. Normale unveränderte Messwerte sollen das
 Log nicht füllen. Für Support Integrationsdiagnose und einen relevanten
 bereinigten Logausschnitt verwenden; Config-Entry-Rohdaten, Captures und
 gespeicherte Sitzungen werden nicht exportiert.
+
+## Zusatzdaten
+
+`resource_read` und `resource_settings_read` unterscheiden die beiden neuen
+Lesewege. Ein Ressourcenfehler betrifft nur die entsprechende Gerätegruppe;
+er löst keine zusätzliche Login-Schleife aus. Der Kontosensor
+**Zusatzdatenstatus** und die bereinigte Diagnose zeigen erfolgreiche und
+fehlgeschlagene Gruppen sowie die jeweilige Fehlerklasse. Feldnamen und
+Wertstatus dürfen in der Diagnose stehen, Messwerte, Gerätekennungen und rohe
+Antworten nicht. Während eines langen Hintergrundlaufs kann der Status
+`updating` bleiben; die bereits gelesenen Gerätegruppen sind einzeln nutzbar.

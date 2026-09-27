@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from datetime import datetime, timedelta
 from hashlib import sha256
 from time import monotonic
@@ -21,6 +22,7 @@ from .api.errors import (
     AccessDenied,
     AccountMismatch,
     ApplicationError,
+    AqaraError,
     AuthenticationRequired,
     InvalidResponse,
     ProtocolUnsupported,
@@ -33,6 +35,7 @@ from .api.errors import (
 from .api.models import AccountIdentity, AccountSnapshot
 from .api.profiles import PROFILE
 from .api.rate_limit import AccountRateLimiter
+from .api.resources import DeviceResources
 from .api.signing import CandidateSigner
 from .const import (
     CONF_ACCOUNT_SECRET,
@@ -160,6 +163,19 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self._terminal_error: str | None = None
         self.successful_reads = 0
         self.failed_reads = 0
+        self.resource_data: dict[tuple[str, str], DeviceResources] = {}
+        self.resource_status: dict[tuple[str, str], str] = {}
+        self.resource_errors: dict[tuple[str, str], str] = {}
+        self.resource_received_monotonic: dict[tuple[str, str], float] = {}
+        self.resource_successful_reads = 0
+        self.resource_failed_reads = 0
+        self._resource_task: asyncio.Task[None] | None = None
+        self._resource_cursor = 0
+        self._resource_max_age = max(
+            self._max_receive_age,
+            interval
+            + len(self.device_ids) * 4 * max(interval, REFRESH_COOLDOWN + TRANSPORT_TIMEOUT),
+        )
 
     @callback
     def async_start_liveness(self) -> None:
@@ -173,6 +189,7 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self._stale_timer = None
         if self._closed:
             return
+        changed = False
         if (
             self._last_received is not None
             and self._clock() - self._last_received > self._max_receive_age
@@ -183,7 +200,15 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
                     self.connection_status = "retry_wait"
                     self.error_key = "cannot_connect"
                     async_set_issue(self.hass, self.entry.entry_id, "cannot_connect")
-                self.async_update_listeners()
+                changed = True
+        for key, received in self.resource_received_monotonic.items():
+            if self._clock() - received > self._resource_max_age and self.resource_status.get(
+                key
+            ) in ("ready", "updating"):
+                self.resource_status[key] = "stale"
+                changed = True
+        if changed:
+            self.async_update_listeners()
         self.async_start_liveness()
 
     async def _async_update_data(self) -> AccountSnapshot:
@@ -275,7 +300,121 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self.last_successful_read = snapshot.received_at_utc
         async_clear_connection_issues(self.hass, self.entry.entry_id)
         async_set_issue(self.hass, self.entry.entry_id, "freshness_unverified")
+        self.async_schedule_supplemental()
         return snapshot
+
+    @property
+    def supplemental_status(self) -> str:
+        """Account summary; each device/query retains an independent status."""
+        if self._resource_task is not None and not self._resource_task.done():
+            return "updating"
+        statuses = list(self.resource_status.values())
+        if not statuses:
+            return "idle"
+        if len(statuses) == 2 * len(self.device_ids) and all(
+            status == "ready" for status in statuses
+        ):
+            return "ready"
+        return "partial_failure" if "ready" in statuses else "unavailable"
+
+    def resource_available(self, device_id: str, query_kind: str) -> bool:
+        """A fresh resource group is independent of the QLINK response status."""
+        key = (device_id, query_kind)
+        group = self.resource_data.get(key)
+        received = self.resource_received_monotonic.get(key)
+        return (
+            not self._closed
+            and group is not None
+            and group.available
+            and self.resource_status.get(key) in ("ready", "updating")
+            and received is not None
+            and self._clock() - received <= self._resource_max_age
+        )
+
+    def resource_sleep_mode(self, device_id: str) -> bool:
+        if not self.resource_available(device_id, "resources"):
+            return False
+        mode = self.resource_data[(device_id, "resources")].observations.get("set_device_mode4")
+        return (
+            mode is not None
+            and mode.value_status == "present"
+            and type(mode.value) is int
+            and mode.value == 9
+        )
+
+    @callback
+    def async_schedule_supplemental(self) -> None:
+        """Supplemental calls never hold up setup or replace the primary batch."""
+        if self._closed or self._resource_task is not None:
+            return
+        self._resource_task = self.hass.async_create_background_task(
+            self._async_fetch_supplemental(), name="Aqara supplemental reads", eager_start=False
+        )
+
+    async def _async_fetch_supplemental(self) -> None:
+        queries = [
+            (device_id, kind) for device_id in self.device_ids for kind in ("resources", "settings")
+        ]
+        try:
+            for _ in queries:
+                if self._closed:
+                    return
+                key = queries[self._resource_cursor]
+                device_id, query_kind = key
+                method = (
+                    self.client.async_read_resources
+                    if query_kind == "resources"
+                    else self.client.async_read_resource_settings
+                )
+                self.resource_status[key] = "updating"
+                self.async_update_listeners()
+                try:
+                    group = await method(device_id)
+                    if group.device_id != device_id or not group.available:
+                        raise InvalidResponse()
+                except RateLimited as error:
+                    self._resource_failed(key, error)
+                    # Keep this position for the next primary poll. Otherwise
+                    # phase-aligned primary reads can permanently skip a group.
+                    return
+                except (AqaraError, CredentialStoreError) as error:
+                    self._resource_failed(key, error)
+                except Exception:
+                    # Do not render arbitrary upstream errors or resource values.
+                    self._resource_failed(key, InvalidResponse())
+                else:
+                    self.resource_data[key] = group
+                    self.resource_status[key] = "ready"
+                    self.resource_errors.pop(key, None)
+                    self.resource_received_monotonic[key] = self._clock()
+                    self.resource_successful_reads += 1
+                self._resource_cursor = (self._resource_cursor + 1) % len(queries)
+                self.async_update_listeners()
+        finally:
+            self._resource_task = None
+            if not self._closed:
+                self.async_update_listeners()
+
+    @callback
+    def _resource_failed(self, key: tuple[str, str], error: Exception) -> None:
+        error_key = (
+            "rate_limited"
+            if isinstance(error, RateLimited)
+            else "auth_required"
+            if isinstance(error, AuthenticationRequired)
+            else "cannot_connect"
+            if isinstance(error, TransportError)
+            else "api_changed"
+        )
+        if self.resource_errors.get(key) != error_key:
+            _LOGGER.warning("Aqara supplemental %s read failed: %s", key[1], error_key)
+        self.resource_errors[key] = error_key
+        self.resource_status[key] = "unavailable"
+        self.resource_failed_reads += 1
+        if old := self.resource_data.get(key):
+            self.resource_data[key] = replace(
+                old, observations={}, available=False, error=error_key
+            )
 
     @callback
     def _set_failure(self, status: str, key: str) -> None:
@@ -301,6 +440,9 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         if self._closed:
             return
         self._closed = True
+        if self._resource_task is not None:
+            self._resource_task.cancel()
+            await asyncio.gather(self._resource_task, return_exceptions=True)
         if self._stale_timer is not None:
             self._stale_timer.cancel()
             self._stale_timer = None

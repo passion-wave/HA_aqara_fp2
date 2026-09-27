@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import entity_registry as er
 
 from custom_components.aqara_presence_lab.api.account import ManagedAqaraClient
 from custom_components.aqara_presence_lab.api.rate_limit import AccountRateLimiter
@@ -41,8 +42,32 @@ class QueuedSession:
         self.responses = list(responses)
         self.calls = []
 
+    @property
+    def primary_calls(self):
+        return [(url, kwargs) for url, kwargs in self.calls if "/res/query" not in url]
+
     def post(self, url, **kwargs):
         self.calls.append((url, kwargs))
+        if "/res/query" in url:
+            device_id = json.loads(kwargs["data"])["data"][0]["subjectId"]
+            if url.endswith("/by/resourceId"):
+                result = [{"resourceId": "14.1.85", "value": "3", "subjectId": device_id}]
+            else:
+                values = {
+                    "lux": 14 if device_id == DEVICE_IDS[0] else 115,
+                    "set_device_mode4": 9 if device_id == DEVICE_IDS[0] else 3,
+                    "heartrate_value": 65,
+                    "respiration_rate_value": 14,
+                    "sleep_state": "2",
+                    "people_counting": 1.5,
+                    "detection_area1": 1,
+                    "device_offline_status": 1,
+                }
+                result = [
+                    {"subjectId": device_id, "attr": attr, "value": value}
+                    for attr, value in values.items()
+                ]
+            return Response(json.dumps({"code": 0, "result": result}).encode())
         assert self.responses, "Unexpected extra HTTP call"
         return self.responses.pop(0)
 
@@ -109,7 +134,7 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
         await hass.async_block_till_done()
         result = await hass.config_entries.flow.async_configure(result["flow_id"])
         assert result["step_id"] == "devices"
-        assert len(session.calls) == 2
+        assert len(session.primary_calls) == 2
         assert not (tmp_path / "secrets.yaml").exists()
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -123,35 +148,72 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
         await hass.async_block_till_done()
 
     assert not {"account", "password", "token"}.intersection(entry.data)
-    assert len(session.calls) == 2
+    assert len(session.primary_calls) == 2
     saved = await async_load_session(hass, entry.data["session_store_id"])
     assert saved.token == FIRST_TOKEN and saved.sys_type == "1"
     assert (tmp_path / "secrets.yaml").stat().st_mode & 0o777 == 0o600
     original_unique_id = entry.unique_id
 
     clock.tick += 60
-    with (
-        patch.object(hass.config_entries, "async_forward_entry_setups", AsyncMock()),
-        patch.object(hass.config_entries, "async_unload_platforms", AsyncMock(return_value=True)),
-    ):
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        assert len(session.calls) == 3
-        coordinator = entry.runtime_data
-        clock.tick += 300
-        coordinator._last_attempt = None
-        snapshot = await coordinator._async_update_data()
-        assert len(snapshot.devices) == 2
-        assert len(session.calls) == 6
-        saved = await async_load_session(hass, entry.data["session_store_id"])
-        assert saved.token == SECOND_TOKEN
-        assert entry.unique_id == original_unique_id
-        assert await hass.config_entries.async_unload(entry.entry_id)
+    # Exercise the actual entity platforms, unload and restart as well.
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    assert len(session.primary_calls) == 3
+    coordinator = entry.runtime_data
+    if coordinator._resource_task is not None:
+        await coordinator._resource_task
+    await hass.async_block_till_done()
+    assert coordinator.supplemental_status == "ready"
+    assert coordinator.resource_successful_reads == 4
+    registry = er.async_get(hass)
 
-        clock.tick += 300
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        assert len(session.calls) == 7
-        assert session.calls[-1][1]["headers"]["Token"] == SECOND_TOKEN
-        assert await hass.config_entries.async_unload(entry.entry_id)
+    def registered(device_id, key):
+        return next(
+            (
+                entity
+                for entity in registry.entities.values()
+                if entity.config_entry_id == entry.entry_id
+                and entity.unique_id.endswith(f":{device_id}:{key}")
+            ),
+            None,
+        )
+
+    heart = registered(DEVICE_IDS[0], "resource_heartrate_value")
+    assert heart is not None
+    assert hass.states.get(heart.entity_id).state == "65"
+    assert hass.states.get(heart.entity_id).attributes["unit_of_measurement"] == "bpm"
+    assert registered(DEVICE_IDS[1], "resource_heartrate_value") is None
+    for device_id, lux in zip(DEVICE_IDS, (14, 115), strict=True):
+        resource_lux = registered(device_id, "resource_lux")
+        assert hass.states.get(resource_lux.entity_id).state == str(lux)
+        assert registered(device_id, "resource_detection_area1").disabled_by is not None
+        assert registered(device_id, "setting_presence_detection_sens").disabled_by is not None
+        assert registered(device_id, "resource_detection_area2") is None
+    assert hass.states.get(heart.entity_id).attributes["data_quality"] == "unverified"
+    assert "state_class" not in hass.states.get(heart.entity_id).attributes
+    clock.tick += 300
+    coordinator._last_attempt = None
+    snapshot = await coordinator._async_update_data()
+    assert len(snapshot.devices) == 2
+    if coordinator._resource_task is not None:
+        await coordinator._resource_task
+    assert len(session.primary_calls) == 6
+    saved = await async_load_session(hass, entry.data["session_store_id"])
+    assert saved.token == SECOND_TOKEN
+    assert entry.unique_id == original_unique_id
+    assert await hass.config_entries.async_unload(entry.entry_id)
+
+    clock.tick += 300
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    assert len(session.primary_calls) == 7
+    restarted = entry.runtime_data
+    if restarted._resource_task is not None:
+        await restarted._resource_task
+    await hass.async_block_till_done()
+    assert session.primary_calls[-1][1]["headers"]["Token"] == SECOND_TOKEN
+    assert restarted.resource_successful_reads == 4
+    assert registered(DEVICE_IDS[0], "resource_heartrate_value").entity_id == heart.entity_id
+    assert hass.states.get(heart.entity_id).state == "65"
+    assert await hass.config_entries.async_unload(entry.entry_id)
 
     login_calls = [kwargs for url, kwargs in session.calls if url.endswith("/user/login")]
     assert len(login_calls) == 2
@@ -161,6 +223,12 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
         body = json.loads(kwargs["data"])
         assert body["account"] == ACCOUNT and body["password"] != PASSWORD
         assert kwargs["ssl"] is True and kwargs["allow_redirects"] is False
+    resource_calls = [(url, kwargs) for url, kwargs in session.calls if "/res/query" in url]
+    assert len(resource_calls) == 12
+    for index, (_url, kwargs) in enumerate(resource_calls):
+        expected_token = FIRST_TOKEN if index < 4 else SECOND_TOKEN
+        assert kwargs["headers"]["Token"] == expected_token
+        assert len(json.loads(kwargs["data"])["data"]) == 1
     assert not session.responses
     for secret in (ACCOUNT, PASSWORD, FIRST_TOKEN, SECOND_TOKEN, USER_ID):
         assert secret not in caplog.text

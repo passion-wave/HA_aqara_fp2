@@ -10,6 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.aqara_presence_lab.api.models import AccountIdentity
 from custom_components.aqara_presence_lab.api.parsing import parse_response
+from custom_components.aqara_presence_lab.api.resources import DeviceResources
 from custom_components.aqara_presence_lab.const import DOMAIN
 
 
@@ -43,9 +44,16 @@ def aqara_entry():
 
 @pytest.fixture
 def aqara_client(aqara_snapshot):
+    async def empty_resources(device_id):
+        return DeviceResources(
+            device_id=device_id, observations={}, received_at_utc=aqara_snapshot.received_at_utc
+        )
+
     return SimpleNamespace(
         async_validate_credentials=AsyncMock(return_value=AccountIdentity("EU", "synthetic-user")),
         async_read_traits=AsyncMock(return_value=aqara_snapshot),
+        async_read_resources=AsyncMock(side_effect=empty_resources),
+        async_read_resource_settings=AsyncMock(side_effect=empty_resources),
         async_close=AsyncMock(),
         limiter=SimpleNamespace(retry_after=60),
     )

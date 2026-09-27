@@ -98,6 +98,7 @@ async def test_http_status_takes_precedence_over_success_body(status, error):
     assert "private" not in str(caught.value) + repr(caught.value)
     if status == 429:
         assert caught.value.retry_after == 120
+        assert caught.value.request_sent is True
     assert len(api._session.calls) == 1
 
 

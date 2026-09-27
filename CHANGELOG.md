@@ -1,5 +1,14 @@
 # Änderungen
 
+## 0.3.0b1 — Zusätzliche FP2-Daten
+
+- Zwei zusätzliche, ausschließlich lesende Ressourcenabfragen mit 81 Statusfeldern und sieben Einstellungen pro Gerät.
+- Gerätemodus, gemeldete Personenzählung, Zonen und Statistiken sowie Schlaf-, Herz-, Atem- und Bewegungswerte bei gemeldetem Schlafmodus.
+- Dynamische Entitäten nur für gelieferte Werte, optionale Zonen-/Einstellungsentitäten und deutscher/englischer Oberfläche.
+- Hintergrundabruf mit gemeinsamem Kontolimit, Geräte- und Gruppenisolation, eigener Verfügbarkeit und bereinigtem Zusatzdatenstatus.
+- Keine Modusänderung, keine Ersatznullen, keine Übernahme alter Werte nach Teilantworten und keine abgeleitete Position aus unbekannten Codes.
+- Live-Anmeldung und bisheriger Trait-Abruf mit zwei eigenen FP2 bestätigt; weitere Live-Ergebnisse und Testzahlen im [Validierungsbericht](docs/VALIDIERUNG.md).
+
 ## 0.2.0b1 — Anmelde-Beta
 
 - Vollständiger EU-Anmeldeweg auf Basis des SleepRadar-Loginvertrags mit Fortschrittsanzeige und serverseitiger Kontoprüfung.

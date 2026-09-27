@@ -143,11 +143,337 @@
       },
       "fall_state_raw": {
         "name": "Rohcode der Sturzgruppe"
+      },
+      "supplemental_status": {
+        "name": "Status zusätzlicher Daten",
+        "state": {
+          "idle": "Noch nicht abgefragt",
+          "updating": "Zusätzliche Daten werden gelesen",
+          "ready": "Bereit",
+          "partial_failure": "Teilweise verfügbar",
+          "unavailable": "Nicht verfügbar"
+        }
+      },
+      "resource_body_movement_value": {
+        "name": "Gemeldete Körperbewegung"
+      },
+      "resource_heartrate_value": {
+        "name": "Gemeldete Herzfrequenz"
+      },
+      "resource_respiration_rate_value": {
+        "name": "Gemeldete Atemfrequenz"
+      },
+      "resource_sleep_state": {
+        "name": "Schlaf-Rohcode"
+      },
+      "resource_lux": {
+        "name": "Gemeldete Ressourcen-Beleuchtungsstärke"
+      },
+      "resource_all_zone_statistics": {
+        "name": "Gemeldete Gesamt-Zonenzahl"
+      },
+      "resource_people_counting": {
+        "name": "Gemeldete Personenzahl"
+      },
+      "resource_people_counting_by_mins": {
+        "name": "Gemeldete Personenzahl pro Minute"
+      },
+      "resource_zone1_statistics": {
+        "name": "Gemeldete Anzahl Zone 1"
+      },
+      "resource_zone2_statistics": {
+        "name": "Gemeldete Anzahl Zone 2"
+      },
+      "resource_zone3_statistics": {
+        "name": "Gemeldete Anzahl Zone 3"
+      },
+      "resource_zone4_statistics": {
+        "name": "Gemeldete Anzahl Zone 4"
+      },
+      "resource_zone5_statistics": {
+        "name": "Gemeldete Anzahl Zone 5"
+      },
+      "resource_zone6_statistics": {
+        "name": "Gemeldete Anzahl Zone 6"
+      },
+      "resource_zone7_statistics": {
+        "name": "Gemeldete Anzahl Zone 7"
+      },
+      "resource_zone8_statistics": {
+        "name": "Gemeldete Anzahl Zone 8"
+      },
+      "resource_zone9_statistics": {
+        "name": "Gemeldete Anzahl Zone 9"
+      },
+      "resource_zone10_statistics": {
+        "name": "Gemeldete Anzahl Zone 10"
+      },
+      "resource_zone11_statistics": {
+        "name": "Gemeldete Anzahl Zone 11"
+      },
+      "resource_zone12_statistics": {
+        "name": "Gemeldete Anzahl Zone 12"
+      },
+      "resource_zone13_statistics": {
+        "name": "Gemeldete Anzahl Zone 13"
+      },
+      "resource_zone14_statistics": {
+        "name": "Gemeldete Anzahl Zone 14"
+      },
+      "resource_zone15_statistics": {
+        "name": "Gemeldete Anzahl Zone 15"
+      },
+      "resource_zone16_statistics": {
+        "name": "Gemeldete Anzahl Zone 16"
+      },
+      "resource_zone17_statistics": {
+        "name": "Gemeldete Anzahl Zone 17"
+      },
+      "resource_zone18_statistics": {
+        "name": "Gemeldete Anzahl Zone 18"
+      },
+      "resource_zone19_statistics": {
+        "name": "Gemeldete Anzahl Zone 19"
+      },
+      "resource_zone20_statistics": {
+        "name": "Gemeldete Anzahl Zone 20"
+      },
+      "resource_zone21_statistics": {
+        "name": "Gemeldete Anzahl Zone 21"
+      },
+      "resource_zone22_statistics": {
+        "name": "Gemeldete Anzahl Zone 22"
+      },
+      "resource_zone23_statistics": {
+        "name": "Gemeldete Anzahl Zone 23"
+      },
+      "resource_zone24_statistics": {
+        "name": "Gemeldete Anzahl Zone 24"
+      },
+      "resource_zone25_statistics": {
+        "name": "Gemeldete Anzahl Zone 25"
+      },
+      "resource_zone26_statistics": {
+        "name": "Gemeldete Anzahl Zone 26"
+      },
+      "resource_zone27_statistics": {
+        "name": "Gemeldete Anzahl Zone 27"
+      },
+      "resource_zone28_statistics": {
+        "name": "Gemeldete Anzahl Zone 28"
+      },
+      "resource_zone29_statistics": {
+        "name": "Gemeldete Anzahl Zone 29"
+      },
+      "resource_zone30_statistics": {
+        "name": "Gemeldete Anzahl Zone 30"
+      },
+      "resource_zone1_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 1"
+      },
+      "resource_zone2_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 2"
+      },
+      "resource_zone3_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 3"
+      },
+      "resource_zone4_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 4"
+      },
+      "resource_zone5_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 5"
+      },
+      "resource_zone6_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 6"
+      },
+      "resource_zone7_people_counting_by_mins": {
+        "name": "Gemeldete Personen pro Minute Zone 7"
+      },
+      "resource_installation_angle": {
+        "name": "Gemeldete Einbaulage",
+        "state": {
+          "face_up": "Nach oben",
+          "oblique": "Schräg",
+          "horizontal": "Horizontal",
+          "face_down": "Nach unten"
+        }
+      },
+      "resource_set_device_mode4": {
+        "name": "Gemeldeter Betriebsmodus",
+        "state": {
+          "zone_detection": "Zonenerkennung",
+          "fall_detection": "Sturzerkennung",
+          "sleep_monitoring": "Schlafüberwachung"
+        }
+      },
+      "resource_view_zoom": {
+        "name": "Gemeldeter Ansichtszoom",
+        "state": {
+          "full": "Vollständig",
+          "adaptive": "Adaptiv"
+        }
+      },
+      "resource_mounting_position": {
+        "name": "Gemeldete Montageposition",
+        "state": {
+          "wall": "Wand",
+          "left_corner": "Linke Ecke",
+          "right_corner": "Rechte Ecke"
+        }
+      },
+      "resource_attitude_status": {
+        "name": "Lage-Rohcode"
+      },
+      "setting_fall_detection_sens": {
+        "name": "Empfindlichkeit der Sturzerkennung",
+        "state": {
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "setting_detection_dir": {
+        "name": "Erkennungsrichtung",
+        "state": {
+          "default": "Standard",
+          "left_right": "Links / rechts"
+        }
+      },
+      "setting_reverse_coordinate_dir": {
+        "name": "Umkehrung der Koordinatenrichtung",
+        "state": {
+          "disable": "Deaktiviert",
+          "enable": "Aktiviert",
+          "auto": "Automatisch"
+        }
+      },
+      "setting_presence_detection_sens": {
+        "name": "Empfindlichkeit der Anwesenheitserkennung",
+        "state": {
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "setting_proximity_sensing_dist": {
+        "name": "Distanz der Näherungserkennung",
+        "state": {
+          "far": "Weit",
+          "medium": "Mittel",
+          "close": "Nah"
+        }
+      },
+      "setting_anti_light_poll": {
+        "name": "Schutz vor Lichtverschmutzung",
+        "state": {
+          "disable": "Deaktiviert",
+          "enable": "Aktiviert"
+        }
+      },
+      "setting_ai_person_det": {
+        "name": "KI-Personenerkennung",
+        "state": {
+          "disable": "Deaktiviert",
+          "enable": "Aktiviert"
+        }
       }
     },
     "binary_sensor": {
       "connection_problem": {
         "name": "Verbindungsproblem"
+      },
+      "resource_device_offline_status": {
+        "name": "Gemeldete Cloud-Verbindung"
+      },
+      "resource_detection_area1": {
+        "name": "Gemeldete Präsenz Zone 1"
+      },
+      "resource_detection_area2": {
+        "name": "Gemeldete Präsenz Zone 2"
+      },
+      "resource_detection_area3": {
+        "name": "Gemeldete Präsenz Zone 3"
+      },
+      "resource_detection_area4": {
+        "name": "Gemeldete Präsenz Zone 4"
+      },
+      "resource_detection_area5": {
+        "name": "Gemeldete Präsenz Zone 5"
+      },
+      "resource_detection_area6": {
+        "name": "Gemeldete Präsenz Zone 6"
+      },
+      "resource_detection_area7": {
+        "name": "Gemeldete Präsenz Zone 7"
+      },
+      "resource_detection_area8": {
+        "name": "Gemeldete Präsenz Zone 8"
+      },
+      "resource_detection_area9": {
+        "name": "Gemeldete Präsenz Zone 9"
+      },
+      "resource_detection_area10": {
+        "name": "Gemeldete Präsenz Zone 10"
+      },
+      "resource_detection_area11": {
+        "name": "Gemeldete Präsenz Zone 11"
+      },
+      "resource_detection_area12": {
+        "name": "Gemeldete Präsenz Zone 12"
+      },
+      "resource_detection_area13": {
+        "name": "Gemeldete Präsenz Zone 13"
+      },
+      "resource_detection_area14": {
+        "name": "Gemeldete Präsenz Zone 14"
+      },
+      "resource_detection_area15": {
+        "name": "Gemeldete Präsenz Zone 15"
+      },
+      "resource_detection_area16": {
+        "name": "Gemeldete Präsenz Zone 16"
+      },
+      "resource_detection_area17": {
+        "name": "Gemeldete Präsenz Zone 17"
+      },
+      "resource_detection_area18": {
+        "name": "Gemeldete Präsenz Zone 18"
+      },
+      "resource_detection_area19": {
+        "name": "Gemeldete Präsenz Zone 19"
+      },
+      "resource_detection_area20": {
+        "name": "Gemeldete Präsenz Zone 20"
+      },
+      "resource_detection_area21": {
+        "name": "Gemeldete Präsenz Zone 21"
+      },
+      "resource_detection_area22": {
+        "name": "Gemeldete Präsenz Zone 22"
+      },
+      "resource_detection_area23": {
+        "name": "Gemeldete Präsenz Zone 23"
+      },
+      "resource_detection_area24": {
+        "name": "Gemeldete Präsenz Zone 24"
+      },
+      "resource_detection_area25": {
+        "name": "Gemeldete Präsenz Zone 25"
+      },
+      "resource_detection_area26": {
+        "name": "Gemeldete Präsenz Zone 26"
+      },
+      "resource_detection_area27": {
+        "name": "Gemeldete Präsenz Zone 27"
+      },
+      "resource_detection_area28": {
+        "name": "Gemeldete Präsenz Zone 28"
+      },
+      "resource_detection_area29": {
+        "name": "Gemeldete Präsenz Zone 29"
+      },
+      "resource_detection_area30": {
+        "name": "Gemeldete Präsenz Zone 30"
       }
     },
     "button": {

@@ -52,6 +52,8 @@ def check() -> list[str]:
         "repairs.py",
         "credential_store.py",
         "api/account.py",
+        "api/resources.py",
+        "api/AqaraDevices-LICENSE.txt",
         "brand/icon.png",
     ]
     errors.extend(

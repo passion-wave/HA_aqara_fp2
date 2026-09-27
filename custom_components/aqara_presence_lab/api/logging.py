@@ -75,7 +75,12 @@ def log_event(
         record["http_status"] = http_status
     if type(device_count) is int and 0 <= device_count <= 100:
         record["device_count"] = device_count
-    if type(operation) is str and operation in ("login", "trait_read"):
+    if type(operation) is str and operation in (
+        "login",
+        "trait_read",
+        "resource_read",
+        "resource_settings_read",
+    ):
         record["operation"] = operation
     if (
         elapsed is not None

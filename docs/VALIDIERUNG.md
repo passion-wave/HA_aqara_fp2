@@ -1,6 +1,6 @@
 # Validierungsbericht
 
-**Stand: 27.09.2026 · Integrationsversion: 0.2.0b1 · Anmelde-Beta**
+**Stand: 27.09.2026 · Integrationsversion: 0.3.0b1 · zusätzliche Ressourcen**
 
 ## Testbasis und Nachweisgrenzen
 
@@ -19,9 +19,9 @@ Anmeldung, aktuelle Sensordaten oder einen stabilen Dauerbetrieb.
 
 ## Automatisierte Prüfung
 
-Lokaler Abschlusslauf: **583 Tests bestanden**, keine fehlgeschlagenen oder
-übersprungenen Tests, **93 % Coverage.py-Abdeckung einschließlich Verzweigungen**.
-Ruff bestätigt 68 Python-Dateien; Mypy prüft alle 27 Integrationsmodule.
+Lokaler Abschlusslauf der Version 0.3.0b1: **804 Tests bestanden**, keine fehlgeschlagenen oder
+übersprungenen Tests, **94 % Coverage.py-Abdeckung einschließlich Verzweigungen**.
+Ruff bestätigt 74 Python-Dateien; Mypy prüft alle 28 Integrationsmodule.
 Repository-Vertrag, Dependency-Check, reproduzierbares Release-ZIP und
 Gitleaks 8.30.1 sind erfolgreich. Der vollständige öffentliche Dateibestand
 wurde ohne private lokale Captures auf Geheimnisse geprüft.
@@ -43,7 +43,7 @@ Testumgebung: **Home Assistant 2026.9.3**, **Python 3.14.6**,
 | Secrets und Dateien | Echte temporäre Dateien, Erhalt fremder Einträge/Kommentare, atomare Schreibvorgänge, Dateirechte, Parallelität, Syntax-/Größenlimits, Symlink-/Hardlink-Ablehnung, Neustart |
 | HA-Assistent | Einwilligung, lokale Eingabe oder Secret-Referenzen, Fortschritt, Geräteauswahl, Abbruch, Speicherfehler, Duplicate Account, Reauth und Reconfigure |
 | HA-Laufzeit | Setup/Unload/Reload, Migration alter Token-Einträge, gemeinsame Abrufe, Entitätskennungen, Verfügbarkeit, unabhängiger Empfangstimer, Repairs und Diagnose |
-| Durchgehender Ablauf | Echter HA-Flow → RSA/Transport/Parser mit simuliertem HTTP → echte Secret-/Sessiondateien → Setup → Tokenablauf → Neuanmeldung → Neustart mit neuem Token |
+| Durchgehender Ablauf | Echter HA-Flow → RSA/Transport/Parser mit simuliertem HTTP → echte Secret-/Sessiondateien → HA-Plattformen und Zusatzentitäten → Tokenablauf → Neuanmeldung → Neustart mit neuem Token |
 | Datenschutz | Keine synthetischen Credentials in DEBUG-Logs, Repr, Fehlern, Config Entries oder Diagnoseexporten; feste Feldauswahl statt Rohantworten |
 | Distribution | Ruff, Mypy, Dependency-Check, Übersetzungsvertrag, reproduzierbares Runtime-ZIP, Gitleaks sowie offizielle Hassfest-/HACS-Prüfung |
 
@@ -59,10 +59,10 @@ in Tests oder CI verwendet.
 |---|---|
 | G0 – Offline-Vertrag | Automatisiert geprüft |
 | G1 – eigener Original-Capture | **Bestanden am 27.09.2026**; exakter lokaler Signaturvergleich |
-| G2 – eigener EU-Trait-Endpunkt | **Nicht bestanden**; vier frühere autorisierte Proben mit inzwischen abgelehnter Sitzung |
+| G2 – eigener EU-Trait-Endpunkt | **Bestanden am 27.09.2026** im regulären Integrationsbetrieb mit zwei FP2; vier frühere Capture-Proben waren abgelehnt |
 | G3 – App/Proxy unabhängig, Subscription und Frische | **Offen** |
-| G4 – Präsenzsemantik | **Offen**, kein Cloud-Occupancy-Sensor |
-| G5 – echte Sitzungserneuerung / Login | **Offen**, Softwareablauf automatisiert geprüft |
+| G4 – Präsenzsemantik | **Offen**; qlink-Rohcodes ungemappt, zusätzliche Zonenwerte nur laut Quelle bezeichnet |
+| G5 – echte Sitzungserneuerung / Login | Login bestätigt; echte Ablauf-/Erneuerungsprüfung weiterhin **offen** |
 | G6 – 24 Stunden, Neustart und Ausfall am Nutzerkonto | **Nicht durchgeführt** |
 
 G1 ergab `matched` für `sleepradar_eu_candidate_v1`, Profilversion 1.
@@ -78,26 +78,30 @@ Antwort bestätigte ausdrücklich `Token has expired`; nur das Vergleichsergebni
 wurde ausgegeben. Diese direkte Beobachtung begründet die Ablaufzuordnung für
 den privaten EU-Trait-Endpunkt, nicht für beliebige Aqara-APIs.
 
-Es gab in diesem Implementierungsschritt **keine echte Kontoanmeldung und keine
-weiteren Aqara-Anfragen**. Wiederholung mit dem alten Token kann die Sitzung
-nicht erneuern. Version 0.2.0b1 stellt dafür den bewusst gestarteten Loginweg
-bereit. Die früheren lokalen Headerexperimente sind kein produktives Profil.
+## Regulärer Betrieb am eigenen Konto
 
-## Freigabe und nächste Abnahme
+Am 27.09.2026 wurde Version 0.2.0b1 über HACS installiert und Home Assistant
+neu gestartet. Die Anmeldung erfolgte durch den Nutzer direkt im HA-Assistenten.
+Anschließend war der Konfigurationseintrag geladen, die Kontoverbindung bereit,
+und beide ausgewählten FP2 lieferten gültige qlink-Antworten. Die Beobachtung
+enthielt 31 angeforderte Pfade pro Gerät und jeweils sechs nicht zurückgegebene
+Pfade. Die gemeldete Helligkeit betrug zum Kontrollzeitpunkt bei beiden Geräten
+0 lx; dieser Wert ist keine unabhängige physische Messprüfung.
 
-Freigegeben ist die **experimentelle Anmelde-Beta** mit lokaler
-Zugangsdatenverwaltung, Sitzungserneuerung, Einrichtung, Entitäten und Diagnose.
-Der Nutzerauftrag erlaubt diesen experimentellen Betrieb vor Abschluss der
-Langzeitnachweise; deren Evidenzstatus bleibt offen. Der zuvor ausschließlich
-statische Vorschauweg ist nicht mehr die einzige Einrichtungsoption.
+Damit sind Anmeldung und regulärer Gerätezugriff bestätigt. Ein separater
+Test mit gezielter Wertänderung, ein realer Tokenablauf sowie 24 Stunden Betrieb
+wurden dadurch nicht ersetzt. Capture-Bytes, Gerätekennungen, Zugangsdaten und
+Rohantworten bleiben ausschließlich lokal.
 
-Die reale Anmeldung am Nutzerkonto wird erst nach Fertigstellung und Rückfrage
-gestartet. Anschließend sind Gerätezugriff, unabhängig veränderte Messwerte,
-Subscription-Verhalten, Sitzungserneuerung und Dauerbetrieb zu prüfen.
-Präsenzsemantik, Personenposition/-anzahl und Schlafdaten werden nicht aus den
-vorliegenden Rohcodes abgeleitet.
+## Zusätzliche Ressourcen in 0.3.0b1
 
-Am laufenden Home Assistant des Nutzers wurden keine Änderungen vorgenommen.
-Der erwartete Konfigurationsmount war nicht verfügbar; seine tatsächliche
-HA-Version ist noch nicht bestätigt. Die oben genannte Version ist die getestete
-Entwicklungsbasis.
+Die neuen Abfragen verwenden 81 Statusattribute und sieben Einstellungen aus
+fixierten MIT-lizenzierten Quellen. Automatisierte Tests prüfen unter anderem
+Gerätebindung, Antwortvarianten, Typgrenzen, Duplikatkonflikte, getrennte
+Abfragegruppen, optionale Entitäten, Moduswechsel, Empfangsfristen, gemeinsame
+Rate-Limits, Entladen und das Vermeiden zusätzlicher Login-Schleifen.
+
+Die Freigabe bleibt experimentell. Ein erfolgreiches Lesen der Ressourcen
+bestätigt nur die tatsächlich erhaltenen Felder des jeweiligen Geräts.
+Koordinaten, Schlafberichte und unbekannte Rohcodes werden nicht hinzugedichtet.
+Aktueller Umfang: [Datenkatalog](DATEN.md).

@@ -3,7 +3,7 @@
 from homeassistant.const import Platform
 
 DOMAIN = "aqara_presence_lab"
-VERSION = "0.2.0b1"
+VERSION = "0.3.0b1"
 PLATFORMS = (Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON)
 CONF_TOKEN = "token"
 CONF_USER_ID = "user_id"

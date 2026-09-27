@@ -41,8 +41,8 @@ class AqaraEntity(CoordinatorEntity[AqaraCoordinator]):
                 name=device.name if device and device.name else "Aqara FP2",
                 model=device.device_model if device else "lumi.motion.agl001",
             )
-            if hub := dr.async_get(coordinator.hass).async_get_device(
-                identifiers={account_identifier}
+            if hub := dr.async_get(coordinator.hass).async_get_device_by_identifier(
+                account_identifier, coordinator.entry.entry_id
             ):
                 self._attr_device_info["via_device_id"] = hub.id
 

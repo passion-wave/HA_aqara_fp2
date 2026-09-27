@@ -143,11 +143,337 @@
       },
       "fall_state_raw": {
         "name": "Fall group raw code"
+      },
+      "supplemental_status": {
+        "name": "Supplemental data status",
+        "state": {
+          "idle": "Not read yet",
+          "updating": "Reading additional data",
+          "ready": "Ready",
+          "partial_failure": "Partially available",
+          "unavailable": "Unavailable"
+        }
+      },
+      "resource_body_movement_value": {
+        "name": "Reported body movement"
+      },
+      "resource_heartrate_value": {
+        "name": "Reported heart rate"
+      },
+      "resource_respiration_rate_value": {
+        "name": "Reported respiratory rate"
+      },
+      "resource_sleep_state": {
+        "name": "Sleep raw code"
+      },
+      "resource_lux": {
+        "name": "Resource reported illuminance"
+      },
+      "resource_all_zone_statistics": {
+        "name": "Reported total zone count"
+      },
+      "resource_people_counting": {
+        "name": "Reported person count"
+      },
+      "resource_people_counting_by_mins": {
+        "name": "Reported person count per minute"
+      },
+      "resource_zone1_statistics": {
+        "name": "Reported count zone 1"
+      },
+      "resource_zone2_statistics": {
+        "name": "Reported count zone 2"
+      },
+      "resource_zone3_statistics": {
+        "name": "Reported count zone 3"
+      },
+      "resource_zone4_statistics": {
+        "name": "Reported count zone 4"
+      },
+      "resource_zone5_statistics": {
+        "name": "Reported count zone 5"
+      },
+      "resource_zone6_statistics": {
+        "name": "Reported count zone 6"
+      },
+      "resource_zone7_statistics": {
+        "name": "Reported count zone 7"
+      },
+      "resource_zone8_statistics": {
+        "name": "Reported count zone 8"
+      },
+      "resource_zone9_statistics": {
+        "name": "Reported count zone 9"
+      },
+      "resource_zone10_statistics": {
+        "name": "Reported count zone 10"
+      },
+      "resource_zone11_statistics": {
+        "name": "Reported count zone 11"
+      },
+      "resource_zone12_statistics": {
+        "name": "Reported count zone 12"
+      },
+      "resource_zone13_statistics": {
+        "name": "Reported count zone 13"
+      },
+      "resource_zone14_statistics": {
+        "name": "Reported count zone 14"
+      },
+      "resource_zone15_statistics": {
+        "name": "Reported count zone 15"
+      },
+      "resource_zone16_statistics": {
+        "name": "Reported count zone 16"
+      },
+      "resource_zone17_statistics": {
+        "name": "Reported count zone 17"
+      },
+      "resource_zone18_statistics": {
+        "name": "Reported count zone 18"
+      },
+      "resource_zone19_statistics": {
+        "name": "Reported count zone 19"
+      },
+      "resource_zone20_statistics": {
+        "name": "Reported count zone 20"
+      },
+      "resource_zone21_statistics": {
+        "name": "Reported count zone 21"
+      },
+      "resource_zone22_statistics": {
+        "name": "Reported count zone 22"
+      },
+      "resource_zone23_statistics": {
+        "name": "Reported count zone 23"
+      },
+      "resource_zone24_statistics": {
+        "name": "Reported count zone 24"
+      },
+      "resource_zone25_statistics": {
+        "name": "Reported count zone 25"
+      },
+      "resource_zone26_statistics": {
+        "name": "Reported count zone 26"
+      },
+      "resource_zone27_statistics": {
+        "name": "Reported count zone 27"
+      },
+      "resource_zone28_statistics": {
+        "name": "Reported count zone 28"
+      },
+      "resource_zone29_statistics": {
+        "name": "Reported count zone 29"
+      },
+      "resource_zone30_statistics": {
+        "name": "Reported count zone 30"
+      },
+      "resource_zone1_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 1"
+      },
+      "resource_zone2_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 2"
+      },
+      "resource_zone3_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 3"
+      },
+      "resource_zone4_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 4"
+      },
+      "resource_zone5_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 5"
+      },
+      "resource_zone6_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 6"
+      },
+      "resource_zone7_people_counting_by_mins": {
+        "name": "Reported persons per minute zone 7"
+      },
+      "resource_installation_angle": {
+        "name": "Reported installation angle",
+        "state": {
+          "face_up": "Facing up",
+          "oblique": "Oblique",
+          "horizontal": "Horizontal",
+          "face_down": "Facing down"
+        }
+      },
+      "resource_set_device_mode4": {
+        "name": "Reported operating mode",
+        "state": {
+          "zone_detection": "Zone detection",
+          "fall_detection": "Fall detection",
+          "sleep_monitoring": "Sleep monitoring"
+        }
+      },
+      "resource_view_zoom": {
+        "name": "Reported view zoom",
+        "state": {
+          "full": "Full",
+          "adaptive": "Adaptive"
+        }
+      },
+      "resource_mounting_position": {
+        "name": "Reported mounting position",
+        "state": {
+          "wall": "Wall",
+          "left_corner": "Left corner",
+          "right_corner": "Right corner"
+        }
+      },
+      "resource_attitude_status": {
+        "name": "Attitude raw code"
+      },
+      "setting_fall_detection_sens": {
+        "name": "Fall detection sensitivity",
+        "state": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "setting_detection_dir": {
+        "name": "Detection direction",
+        "state": {
+          "default": "Default",
+          "left_right": "Left / right"
+        }
+      },
+      "setting_reverse_coordinate_dir": {
+        "name": "Reverse coordinate direction",
+        "state": {
+          "disable": "Disabled",
+          "enable": "Enabled",
+          "auto": "Automatic"
+        }
+      },
+      "setting_presence_detection_sens": {
+        "name": "Presence detection sensitivity",
+        "state": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "setting_proximity_sensing_dist": {
+        "name": "Proximity sensing distance",
+        "state": {
+          "far": "Far",
+          "medium": "Medium",
+          "close": "Close"
+        }
+      },
+      "setting_anti_light_poll": {
+        "name": "Light pollution prevention",
+        "state": {
+          "disable": "Disabled",
+          "enable": "Enabled"
+        }
+      },
+      "setting_ai_person_det": {
+        "name": "AI person detection",
+        "state": {
+          "disable": "Disabled",
+          "enable": "Enabled"
+        }
       }
     },
     "binary_sensor": {
       "connection_problem": {
         "name": "Connection problem"
+      },
+      "resource_device_offline_status": {
+        "name": "Reported cloud connection"
+      },
+      "resource_detection_area1": {
+        "name": "Reported presence zone 1"
+      },
+      "resource_detection_area2": {
+        "name": "Reported presence zone 2"
+      },
+      "resource_detection_area3": {
+        "name": "Reported presence zone 3"
+      },
+      "resource_detection_area4": {
+        "name": "Reported presence zone 4"
+      },
+      "resource_detection_area5": {
+        "name": "Reported presence zone 5"
+      },
+      "resource_detection_area6": {
+        "name": "Reported presence zone 6"
+      },
+      "resource_detection_area7": {
+        "name": "Reported presence zone 7"
+      },
+      "resource_detection_area8": {
+        "name": "Reported presence zone 8"
+      },
+      "resource_detection_area9": {
+        "name": "Reported presence zone 9"
+      },
+      "resource_detection_area10": {
+        "name": "Reported presence zone 10"
+      },
+      "resource_detection_area11": {
+        "name": "Reported presence zone 11"
+      },
+      "resource_detection_area12": {
+        "name": "Reported presence zone 12"
+      },
+      "resource_detection_area13": {
+        "name": "Reported presence zone 13"
+      },
+      "resource_detection_area14": {
+        "name": "Reported presence zone 14"
+      },
+      "resource_detection_area15": {
+        "name": "Reported presence zone 15"
+      },
+      "resource_detection_area16": {
+        "name": "Reported presence zone 16"
+      },
+      "resource_detection_area17": {
+        "name": "Reported presence zone 17"
+      },
+      "resource_detection_area18": {
+        "name": "Reported presence zone 18"
+      },
+      "resource_detection_area19": {
+        "name": "Reported presence zone 19"
+      },
+      "resource_detection_area20": {
+        "name": "Reported presence zone 20"
+      },
+      "resource_detection_area21": {
+        "name": "Reported presence zone 21"
+      },
+      "resource_detection_area22": {
+        "name": "Reported presence zone 22"
+      },
+      "resource_detection_area23": {
+        "name": "Reported presence zone 23"
+      },
+      "resource_detection_area24": {
+        "name": "Reported presence zone 24"
+      },
+      "resource_detection_area25": {
+        "name": "Reported presence zone 25"
+      },
+      "resource_detection_area26": {
+        "name": "Reported presence zone 26"
+      },
+      "resource_detection_area27": {
+        "name": "Reported presence zone 27"
+      },
+      "resource_detection_area28": {
+        "name": "Reported presence zone 28"
+      },
+      "resource_detection_area29": {
+        "name": "Reported presence zone 29"
+      },
+      "resource_detection_area30": {
+        "name": "Reported presence zone 30"
       }
     },
     "button": {
