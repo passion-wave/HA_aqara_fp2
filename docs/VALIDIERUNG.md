@@ -126,6 +126,11 @@ Zugangsdaten war nicht erforderlich.
 | Gerät B: Statusressourcen | 41 gültige Werte, 40 fehlende Felder |
 | Gerät B: Einstellungen | Alle sieben Werte geliefert |
 | Zusatzabfragen insgesamt | Vier erfolgreich, keine Fehler oder Parserkonflikte, Status `ready` |
+| Darstellung in HA | 18 zusätzliche aktive Entitäten; optionale Zonen und Einstellungen separat deaktiviert |
+
+Die Moduszuordnung wurde anhand der HA-Zustände und numerischen Rohcodes
+geprüft. Schlafentitäten erschienen nur im passenden Modus; ein unbekannter
+Montagecode blieb unbekannt.
 
 Diese Abnahme bestätigt beide zusätzlichen Endpunkte und die Gerätezuordnung
 für die tatsächlich gelieferten Felder. Sie ist keine Prüfung der fehlenden
