@@ -9,16 +9,14 @@ ist ausschließlich für den beobachteten EU-Host angelegt.
 
 ## HACS
 
-Voraussetzung ist ein öffentliches Repository: HACS unterstützt
-[keine privaten GitHub-Repositories](https://www.hacs.xyz/docs/faq/private_repositories/).
-Bei privater Sichtbarkeit das Release-ZIP manuell installieren. Die CI überspringt
-die HACS-Remoteprüfung in diesem Fall ausdrücklich und zeigt den Grund an;
-Tests, Hassfest und Secret-Scan laufen weiterhin.
+Das Repository ist seit dem 27.09.2026 öffentlich. Die
+[offizielle HACS-Remoteprüfung](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36302490172)
+ist bestanden; die Installation als benutzerdefiniertes Repository ist verfügbar.
 
 HACS öffnen, Menü **Benutzerdefinierte Repositories**, Repository-URL
 `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
 Anschließend Aqara Presence Lab herunterladen und HA regulär neu starten.
-Bei Auswahl einer Vorabversion in HACS die Beta-Anzeige aktivieren.
+Im Versionsdialog die Labor-Beta **0.1.0b1** auswählen.
 
 Die Oberfläche unter **Geräte & Dienste** bietet eine Offline-Vorschau und zeigt
 den Status des Live-Protokolls. In dieser Beta bleibt die Live-Einrichtung

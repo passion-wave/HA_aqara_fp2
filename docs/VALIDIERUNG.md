@@ -1,6 +1,6 @@
 # Validierungsbericht
 
-**Stand: 26.09.2026 · Integrationsversion: 0.1.0b1 · Labor-Beta**
+**Stand: 27.09.2026 · Integrationsversion: 0.1.0b1 · Labor-Beta**
 
 ## Tatsächliche Testbasis
 
@@ -63,8 +63,10 @@ HACS-Schemas** aus Commit `adb7d83e33d24325535fb43b8226572405143757` von
 Der bereinigte Schema-Prüfbericht ist dem Beta-Release beigefügt. Der
 [finale GitHub-CI-Lauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36266205069)
 bestätigt alle 321 Tests, Hassfest, Linting, Typprüfung und Secret-Scan.
-Die HACS-Remoteprüfung benötigt ein öffentliches Repository; bei privater
-Sichtbarkeit bleibt sie ausdrücklich gesperrt. Im ersten GitHub-Lauf waren alle
+Nach der Öffentlichschaltung am 27.09.2026 besteht auch die
+[offizielle HACS-Remoteprüfung](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36302490172).
+Die frühere Sperre aufgrund privater Repository-Sichtbarkeit ist damit aufgehoben.
+Die Aqara-Live-Gates bleiben unabhängig davon offen. Im ersten GitHub-Lauf waren alle
 306 Tests erfolgreich, der zusätzliche Artifact-Upload scheiterte jedoch am
 kontoweiten GitHub-Speicherlimit. Dieser optionale Upload beeinflusst deshalb
 künftig nicht den Teststatus; Coverage bleibt in Logs und Run Summary erhalten.
