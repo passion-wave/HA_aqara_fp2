@@ -24,8 +24,40 @@ Zwei zusätzliche temporäre Prüfungen der offiziellen HA-Ereignishelfer
 bestätigen die lokale Adaptermachbarkeit. Daraus folgt kein Live-Push-Nachweis.
 Recherche, Primärquellen und nächste Schritte stehen im [Push-Plan](PUSH_PLAN.md).
 
-Der kontrollierte Live-Geschwindigkeitstest folgt erst nach Installation
-dieser Version; seine Ergebnisse werden separat ergänzt.
+Auch im [GitHub-CI-Lauf](https://github.com/passion-wave/HA_aqara_fp2/actions/runs/36395916915)
+bestanden alle 936 Tests unter Linux (15,39 s), HACS, Hassfest und Gitleaks.
+Das erneut heruntergeladene veröffentlichte Paket stimmt bytegenau überein:
+SHA-256 `09d49051e41cdedc9bcade2490d47a62902d5adfa274dd9e4354848e485b1be4`.
+
+### Kontrollierter Live-Test am 28.09.2026
+
+Version 0.4.0b1 wurde über HACS installiert und nach HA-Neustart bestätigt.
+Alle 112 bisherigen Entitätskennungen, Gerätezuordnungen und Aktivierungszustände
+blieben erhalten (106 aktiviert, sechs deaktiviert).
+
+Ein gestarteter Benchmark führte **genau zehn Ressourcenabfragen** mit den
+konfigurierten Stufen 15/10/5 Sekunden aus: **zehn erfolgreich, null Fehler**.
+Nach den jeweiligen Übergangsabständen wurden 15,001–15,002 s,
+10,001–10,002 s und 5,001–5,002 s zwischen tatsächlichen HTTP-Anfragen gemessen.
+Die HTTP-/Verarbeitungsdauer betrug 108–178 ms (Median 157,5 ms).
+Gesamtdauer einschließlich bestehender Anfangspause: 110,597 s.
+
+Je nach Gerät enthielten die Antworten 42 beziehungsweise 41 gültige Felder;
+insgesamt wurde eine Feldänderung gegenüber dem jeweils vorigen Gerätesnapshot
+gesehen. Es wurden keine Messwerte, Gerätekennungen oder Credentials exportiert.
+Ein vorheriger Service-Start während einer normalen Abfrage wurde von der
+Startbedingung abgewiesen; dabei wurde kein Benchmark gestartet.
+
+Nach Abschluss stellte der Test selbständig den vorherigen 30-s-Abstand wieder
+her. Anschließend wurden über den offiziellen Optionsflow 30 s Statusziel je
+Gerät, 3600 s Einstellungen, 300 s QLINK und 10 s gemeinsamer Mindestabstand
+aktiviert und aus der laufenden Diagnose zurückgelesen. Der 5-s-Abstand wurde
+nicht als Dauerprofil gewählt.
+
+[Bereinigte Einzelmessungen](benchmarks/2026-09-28-polling.json) enthalten die
+zehn Samples und Nachweisgrenzen. Dieser kurze Test ist keine dauerhafte
+Serverlimit-Freigabe. HTTP-Zeit und Feldänderung belegen weder Radar-Latenz noch
+aktuelle physische Vitalmessungen; Quellenfrische bleibt unverified.
 
 ## Historischer Nachweis der Version 0.3.0b1
 

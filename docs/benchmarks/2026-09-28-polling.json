@@ -1,0 +1,129 @@
+{
+  "date": "2026-09-28",
+  "integration_version": "0.4.0b1",
+  "device_count": 2,
+  "endpoint": "resources",
+  "probe": {
+    "status": "completed",
+    "request_limit": 10,
+    "completed_reads": 10,
+    "successful_reads": 10,
+    "failed_reads": 0,
+    "samples": [
+      {
+        "index": 1,
+        "requested_spacing_seconds": 15,
+        "elapsed_with_wait_seconds": 20.637,
+        "request_duration_seconds": 0.16,
+        "request_gap_seconds": null,
+        "success": true,
+        "present_fields": 42,
+        "changed_fields": 0
+      },
+      {
+        "index": 2,
+        "requested_spacing_seconds": 15,
+        "elapsed_with_wait_seconds": 15.005,
+        "request_duration_seconds": 0.164,
+        "request_gap_seconds": 15.001,
+        "success": true,
+        "present_fields": 41,
+        "changed_fields": 1
+      },
+      {
+        "index": 3,
+        "requested_spacing_seconds": 15,
+        "elapsed_with_wait_seconds": 14.999,
+        "request_duration_seconds": 0.161,
+        "request_gap_seconds": 15.002,
+        "success": true,
+        "present_fields": 42,
+        "changed_fields": 0
+      },
+      {
+        "index": 4,
+        "requested_spacing_seconds": 10,
+        "elapsed_with_wait_seconds": 15.012,
+        "request_duration_seconds": 0.173,
+        "request_gap_seconds": 15.001,
+        "success": true,
+        "present_fields": 41,
+        "changed_fields": 0
+      },
+      {
+        "index": 5,
+        "requested_spacing_seconds": 10,
+        "elapsed_with_wait_seconds": 9.984,
+        "request_duration_seconds": 0.155,
+        "request_gap_seconds": 10.002,
+        "success": true,
+        "present_fields": 42,
+        "changed_fields": 0
+      },
+      {
+        "index": 6,
+        "requested_spacing_seconds": 10,
+        "elapsed_with_wait_seconds": 9.975,
+        "request_duration_seconds": 0.129,
+        "request_gap_seconds": 10.001,
+        "success": true,
+        "present_fields": 41,
+        "changed_fields": 0
+      },
+      {
+        "index": 7,
+        "requested_spacing_seconds": 5,
+        "elapsed_with_wait_seconds": 9.988,
+        "request_duration_seconds": 0.115,
+        "request_gap_seconds": 10.001,
+        "success": true,
+        "present_fields": 42,
+        "changed_fields": 0
+      },
+      {
+        "index": 8,
+        "requested_spacing_seconds": 5,
+        "elapsed_with_wait_seconds": 5.063,
+        "request_duration_seconds": 0.178,
+        "request_gap_seconds": 5.001,
+        "success": true,
+        "present_fields": 41,
+        "changed_fields": 0
+      },
+      {
+        "index": 9,
+        "requested_spacing_seconds": 5,
+        "elapsed_with_wait_seconds": 4.971,
+        "request_duration_seconds": 0.147,
+        "request_gap_seconds": 5.002,
+        "success": true,
+        "present_fields": 42,
+        "changed_fields": 0
+      },
+      {
+        "index": 10,
+        "requested_spacing_seconds": 5,
+        "elapsed_with_wait_seconds": 4.961,
+        "request_duration_seconds": 0.108,
+        "request_gap_seconds": 5.001,
+        "success": true,
+        "present_fields": 41,
+        "changed_fields": 0
+      }
+    ],
+    "measurement_freshness": "unverified",
+    "elapsed_seconds": 110.597,
+    "restored_spacing_seconds": 30
+  },
+  "limitations": [
+    "Short bounded run, not sustained server-limit validation",
+    "HTTP request timing is not physical sensor latency",
+    "Source measurement freshness remains unverified"
+  ],
+  "operating_profile": {
+    "resource_interval_seconds": 30,
+    "settings_interval_seconds": 3600,
+    "qlink_interval_seconds": 300,
+    "request_spacing_seconds": 10
+  }
+}
