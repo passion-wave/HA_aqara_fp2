@@ -45,6 +45,8 @@ def check() -> list[str]:
         "__init__.py",
         "config_flow.py",
         "coordinator.py",
+        "polling_probe.py",
+        "services.yaml",
         "sensor.py",
         "binary_sensor.py",
         "button.py",

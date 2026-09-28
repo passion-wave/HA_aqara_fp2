@@ -526,5 +526,35 @@
       "title": "Lokalen Sitzungsspeicher prüfen",
       "description": "Zugangsdaten konnten nicht sicher lokal gelesen oder gespeichert werden. secrets.yaml und Dateiberechtigungen prüfen."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Abfrageintervalle",
+        "description": "Status und Vitalwerte werden bevorzugt gelesen, Einstellungen seltener. Die Intervalle sind Ziele pro Gerät; alle Anfragen teilen einen Mindestabstand. 30 Sekunden sind der Standard. Kürzere Abstände sind experimentell und fallen bei Fehlern auf 30 Sekunden zurück. Kürzeres Polling garantiert keine frischeren Messwerte.",
+        "data": {
+          "poll_interval": "QLINK-Intervall",
+          "resource_interval": "Intervall für Status und Vitalwerte",
+          "settings_interval": "Intervall für Einstellungen",
+          "request_spacing": "Mindestabstand zwischen Kontoabfragen"
+        }
+      }
+    },
+    "error": {
+      "invalid_interval": "Intervall außerhalb des angezeigten Bereichs oder keine ganze Zahl.",
+      "invalid_spacing": "Wähle 5, 10, 15 oder 30 Sekunden."
+    }
+  },
+  "services": {
+    "benchmark_polling": {
+      "name": "Abfragegeschwindigkeit testen",
+      "description": "Startet einmalig höchstens zehn Statusabfragen mit 15, 10 und 5 Sekunden Mindestabstand. Bricht beim ersten Fehler ab, stellt anschließend das bisherige Profil wieder her und zeigt nur bereinigte Statistiken in der Integrationsdiagnose. Nur für Administratoren; bestehende Sitzung erforderlich.",
+      "fields": {
+        "entry_id": {
+          "name": "Integrationseintrag",
+          "description": "Der geladene Aqara-Kontoeintrag."
+        }
+      }
+    }
   }
 }

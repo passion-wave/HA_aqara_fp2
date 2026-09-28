@@ -1,6 +1,33 @@
 # Validierungsbericht
 
-**Stand: 27.09.2026 · Integrationsversion: 0.3.0b1 · zusätzliche Ressourcen**
+**Stand: 28.09.2026 · Integrationsversion: 0.4.0b1 · priorisierte Abfragen**
+
+## Prüfung der Version 0.4.0b1
+
+**936 Tests bestanden**, 94 % Abdeckung einschließlich Verzweigungen.
+Ruff prüft 85 formatierte Dateien, Mypy 29 Integrationsmodule.
+Repository-Vertrag, Dependency-Check, reproduzierbares Paket und
+Gitleaks-Prüfung des öffentlichen Dateibestands sind erfolgreich.
+
+Neue Regressionen decken den unabhängigen Statusrundlauf, seltene Einstellungen,
+Fairness, getrennte Fristen, kürzere Kontoabstände, konservativen Fehlerrückfall
+und weiterhin 30 Sekunden vor/nach Login ab. Der durchgehende HA-Test erhält
+Entitätskennungen nach Tokenwechsel und Reload. Der administrative Test ist
+auf zehn Abfragen begrenzt, pausiert konkurrierende Reads und drainiert echte
+Client-/Response-Cancellation vor Fortsetzung und Unload. Nichtadministrative
+Service-Aufrufe werden abgelehnt. Alle HTTP-Antworten sind dabei synthetisch;
+IP-Sockets bleiben gesperrt.
+
+Der separate Cloud-Push-Prototyp besteht 51 Offline-Vertragsprüfungen, unter
+anderem für falsche Geräte, Duplikate, Reihenfolge, Cursorneustart und Replay.
+Zwei zusätzliche temporäre Prüfungen der offiziellen HA-Ereignishelfer
+bestätigen die lokale Adaptermachbarkeit. Daraus folgt kein Live-Push-Nachweis.
+Recherche, Primärquellen und nächste Schritte stehen im [Push-Plan](PUSH_PLAN.md).
+
+Der kontrollierte Live-Geschwindigkeitstest folgt erst nach Installation
+dieser Version; seine Ergebnisse werden separat ergänzt.
+
+## Historischer Nachweis der Version 0.3.0b1
 
 ## Testbasis und Nachweisgrenzen
 

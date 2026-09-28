@@ -238,7 +238,7 @@ class AsyncAqaraClient:
             raise ProtocolUnsupported()
         if len(body) > MAX_BODY_BYTES:
             raise ResponseTooLarge()
-        await self.limiter.async_claim()
+        await self.limiter.async_claim(authentication=path == LOGIN_PATH)
         nonce = secrets.token_hex(16)
         timestamp = str(int(self.clock.now().timestamp() * 1000))
         headers = {

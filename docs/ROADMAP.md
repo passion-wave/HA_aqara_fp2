@@ -14,6 +14,15 @@
 | P9 | Präsenz ausdrücklich ungemappt | G4: drei vollständige Anwesenheitszyklen je Gerät |
 | P10 | 81 Ressourcen und sieben Einstellungen implementiert; beide Endpunkte mit zwei FP2 live bestätigt | Fehlende Felder in anderen Modi, Position und Schlafberichte separat belegen |
 
+## Reaktionszeit und Push
+
+Priorisiertes Polling, getrennte Einstellungsintervalle und ein begrenzter
+Geschwindigkeitstest sind ab 0.4.0b1 implementiert. Die nächste Erweiterung
+folgt dem [quellenbelegten Push-Plan](PUSH_PLAN.md): vorhandene lokale
+HomeKit-Präsenz zuordnen, danach OpenAPI-/RocketMQ-Vitaldaten mit separatem
+Entwicklerzugang am eigenen Konto prüfen. Der Offline-Prototyp ist kein
+Live-Push-Nachweis.
+
 ## Erforderliche Nachweise
 
 1. **G0:** Offline-Datenvertrag mit pseudonymisierten Fixtures prüfen.

@@ -526,5 +526,35 @@
       "title": "Check local session storage",
       "description": "Credentials could not be read or stored safely. Check secrets.yaml and file permissions."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling intervals",
+        "description": "Status and vital observations take priority; settings are read less often. Intervals are per-device targets; all account requests share one minimum spacing. The default is 30 seconds. Shorter spacing is experimental and falls back to 30 seconds on errors. Faster polling does not guarantee fresher measurements.",
+        "data": {
+          "poll_interval": "QLINK interval",
+          "resource_interval": "Status and vital observations interval",
+          "settings_interval": "Settings interval",
+          "request_spacing": "Minimum spacing between account reads"
+        }
+      }
+    },
+    "error": {
+      "invalid_interval": "Interval is outside the displayed range or is not a whole number.",
+      "invalid_spacing": "Choose 5, 10, 15 or 30 seconds."
+    }
+  },
+  "services": {
+    "benchmark_polling": {
+      "name": "Benchmark polling",
+      "description": "Starts at most ten status reads at 15, 10 and 5 second minimum spacing. Stops on the first error, restores the previous profile and exposes only sanitized statistics in integration diagnostics. Administrators only; requires an existing healthy session.",
+      "fields": {
+        "entry_id": {
+          "name": "Integration entry",
+          "description": "The loaded Aqara account entry."
+        }
+      }
+    }
   }
 }

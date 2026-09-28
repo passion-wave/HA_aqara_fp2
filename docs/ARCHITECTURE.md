@@ -79,8 +79,9 @@ und gespeicherte Sitzung. Ein Resource-Fehler löst keine eigene Neuanmeldung au
 Die belegte Ablaufklassifikation gehört zum qlink-Endpunkt. Alle HTTP-Aufrufe
 teilen weiterhin denselben Mindestabstand und Server-Backoff.
 
-Der Coordinator startet nach erfolgreichem Trait-Abruf genau einen zusätzlichen
-Hintergrundlauf. Ergebnisse liegen getrennt nach `(device_id, query_kind)`;
+Der Coordinator startet nach erfolgreichem Trait-Abruf einen unabhängigen
+Zeitplan. Pro Tick läuft genau eine Hintergrundabfrage; Ressourcen und
+Einstellungen haben getrennte Fälligkeiten und Empfangsfristen. Ergebnisse liegen getrennt nach `(device_id, query_kind)`;
 Listener werden nach jeder Gruppe aktualisiert. Eine neue Antwort ersetzt die
 Gruppe vollständig. Lokale monotone Empfangsfristen verhindern die unbegrenzte
 Wiederverwendung alter Antworten. Entladen beendet den Hintergrundlauf und
@@ -91,3 +92,15 @@ stabile Ressourcenkennungen und behalten ihre Gerätezuordnung. Schlafentitäten
 benötigen einen verfügbaren Moduswert aus derselben Ressourcengruppe. Zusätzliche
 Diagnosen exportieren nur Gruppenstatus, Fehlerklasse, Anzahl, Feldname, Typ und
 Zeitstempelvorhandensein; keine Rohwerte, Geräte-IDs oder Kontodaten.
+
+## Prioritäten und begrenzte Proben ab 0.4.0b1
+
+Details des fairen Rundlaufs, der Kontoabstände und des zehnteiligen
+Geschwindigkeitstests: [Polling](POLLING.md). Vor einer Probe werden laufende
+HTTP-Operationen vollständig drainiert; normale Abfragen pausieren. Unload
+bricht die Probe ab und wartet auf das Response-Cleanup. Der Test verwendet
+keine alternative Anmeldung oder Kopie der Credentials.
+
+Die recherchierte Erweiterung um lokale HomeKit-Ereignisse und einen separaten
+OpenAPI-Push-Adapter ist im [Push-Plan](PUSH_PLAN.md) beschrieben. Sie ist kein
+Teil des neuen Runtime-Transports.

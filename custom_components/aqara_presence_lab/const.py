@@ -3,7 +3,7 @@
 from homeassistant.const import Platform
 
 DOMAIN = "aqara_presence_lab"
-VERSION = "0.3.0b1"
+VERSION = "0.4.0b1"
 PLATFORMS = (Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON)
 CONF_TOKEN = "token"
 CONF_USER_ID = "user_id"
@@ -36,3 +36,16 @@ QUALITY_STATES = [
     "stale_confirmed",
     "clock_anomaly",
 ]
+
+# Independent scheduling: live status groups and slowly changing settings.
+CONF_RESOURCE_INTERVAL = "resource_interval"
+CONF_SETTINGS_INTERVAL = "settings_interval"
+CONF_REQUEST_SPACING = "request_spacing"
+DEFAULT_RESOURCE_INTERVAL = 60
+DEFAULT_SETTINGS_INTERVAL = 3600
+DEFAULT_REQUEST_SPACING = 30
+MIN_RESOURCE_INTERVAL = 10
+MAX_RESOURCE_INTERVAL = 3600
+MIN_SETTINGS_INTERVAL = 900
+MAX_SETTINGS_INTERVAL = 86400
+REQUEST_SPACINGS = (30, 15, 10, 5)

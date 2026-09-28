@@ -1,0 +1,7 @@
+benchmark_polling:
+  fields:
+    entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: aqara_presence_lab

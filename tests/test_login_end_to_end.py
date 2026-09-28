@@ -12,6 +12,7 @@ from homeassistant.helpers import entity_registry as er
 from custom_components.aqara_presence_lab.api.account import ManagedAqaraClient
 from custom_components.aqara_presence_lab.api.rate_limit import AccountRateLimiter
 from custom_components.aqara_presence_lab.const import DOMAIN
+from custom_components.aqara_presence_lab.coordinator import AqaraCoordinator
 from custom_components.aqara_presence_lab.credential_store import async_load_session
 from tests.transport_helpers import Clock, Response
 
@@ -80,6 +81,23 @@ def device_response():
     return Response(Path("fixtures/trait_read.response.json").read_bytes())
 
 
+async def resource_tick(coordinator):
+    """Drive one local scheduler timer; the real shared limiter controls HTTP."""
+    if coordinator._resource_timer is not None:
+        coordinator._resource_timer.cancel()
+    coordinator._async_supplemental_timer()
+    if coordinator._resource_task is not None:
+        await coordinator._resource_task
+
+
+async def finish_initial_resources(coordinator):
+    if coordinator._resource_task is not None:
+        await coordinator._resource_task
+    for _ in range(4 - coordinator.resource_successful_reads):
+        await resource_tick(coordinator)
+    assert coordinator.resource_successful_reads == 4
+
+
 async def test_real_flow_storage_startup_expiry_renewal_and_restart(
     hass, tmp_path, monkeypatch, caplog
 ):
@@ -108,6 +126,10 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
     monkeypatch.setattr(f"{ROOT}.coordinator.AccountRateLimiter", lambda: limiter)
     monkeypatch.setattr(f"{ROOT}.coordinator.ManagedAqaraClient", managed)
     monkeypatch.setattr(f"{ROOT}.coordinator.async_get_clientsession", lambda hass: session)
+    monkeypatch.setattr(
+        f"{ROOT}.AqaraCoordinator",
+        lambda hass, entry, client: AqaraCoordinator(hass, entry, client, clock=clock.monotonic),
+    )
 
     # Run the actual HTTP/RSA/parser/auth stack; only network IO is replaced.
     with patch.object(hass.config_entries, "async_setup", AsyncMock(return_value=True)):
@@ -159,8 +181,7 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
     assert await hass.config_entries.async_setup(entry.entry_id)
     assert len(session.primary_calls) == 3
     coordinator = entry.runtime_data
-    if coordinator._resource_task is not None:
-        await coordinator._resource_task
+    await finish_initial_resources(coordinator)
     await hass.async_block_till_done()
     assert coordinator.supplemental_status == "ready"
     assert coordinator.resource_successful_reads == 4
@@ -194,8 +215,11 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
     coordinator._last_attempt = None
     snapshot = await coordinator._async_update_data()
     assert len(snapshot.devices) == 2
-    if coordinator._resource_task is not None:
-        await coordinator._resource_task
+    # QLINK renewal does not trigger another settings sweep. The independently
+    # scheduled next tick reads one due hot group with the renewed token.
+    assert coordinator.resource_successful_reads == 4
+    await resource_tick(coordinator)
+    assert coordinator.resource_successful_reads == 5
     assert len(session.primary_calls) == 6
     saved = await async_load_session(hass, entry.data["session_store_id"])
     assert saved.token == SECOND_TOKEN
@@ -206,8 +230,7 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
     assert await hass.config_entries.async_setup(entry.entry_id)
     assert len(session.primary_calls) == 7
     restarted = entry.runtime_data
-    if restarted._resource_task is not None:
-        await restarted._resource_task
+    await finish_initial_resources(restarted)
     await hass.async_block_till_done()
     assert session.primary_calls[-1][1]["headers"]["Token"] == SECOND_TOKEN
     assert restarted.resource_successful_reads == 4
@@ -224,7 +247,8 @@ async def test_real_flow_storage_startup_expiry_renewal_and_restart(
         assert body["account"] == ACCOUNT and body["password"] != PASSWORD
         assert kwargs["ssl"] is True and kwargs["allow_redirects"] is False
     resource_calls = [(url, kwargs) for url, kwargs in session.calls if "/res/query" in url]
-    assert len(resource_calls) == 12
+    assert len(resource_calls) == 9
+    assert sum(url.endswith("/by/resourceId") for url, _ in resource_calls) == 4
     for index, (_url, kwargs) in enumerate(resource_calls):
         expected_token = FIRST_TOKEN if index < 4 else SECOND_TOKEN
         assert kwargs["headers"]["Token"] == expected_token

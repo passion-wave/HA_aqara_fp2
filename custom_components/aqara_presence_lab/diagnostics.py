@@ -30,7 +30,9 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: AqaraCo
         "successful_reads": coordinator.successful_reads,
         "failed_reads": coordinator.failed_reads,
         "retry_after_seconds": round(coordinator.client.limiter.retry_after),
-        "poll_interval_seconds": entry.data.get(CONF_INTERVAL, DEFAULT_INTERVAL),
+        "poll_interval_seconds": entry.options.get(
+            CONF_INTERVAL, entry.data.get(CONF_INTERVAL, DEFAULT_INTERVAL)
+        ),
         "experimental_cloud_consent": entry.data.get(CONF_CONSENT) is True,
     }
     aliases = {
@@ -74,6 +76,17 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: AqaraCo
         "status": coordinator.supplemental_status,
         "successful_reads": coordinator.resource_successful_reads,
         "failed_reads": coordinator.resource_failed_reads,
+        "resource_interval_seconds": coordinator.resource_interval,
+        "settings_interval_seconds": coordinator.settings_interval,
+        "effective_request_spacing_seconds": getattr(
+            coordinator.client.limiter, "read_spacing", 30
+        ),
+        "requested_request_spacing_seconds": getattr(
+            coordinator.client.limiter, "requested_read_spacing", 30
+        ),
+        "resource_receive_age_limit_seconds": coordinator.resource_max_receive_age("resources"),
+        "settings_receive_age_limit_seconds": coordinator.resource_max_receive_age("settings"),
         "devices": supplemental,
     }
+    result["polling_probe"] = coordinator.polling_probe
     return result

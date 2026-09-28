@@ -33,12 +33,23 @@ from .const import (
     CONF_INTERVAL,
     CONF_PASSWORD_SECRET,
     CONF_REGION,
+    CONF_REQUEST_SPACING,
+    CONF_RESOURCE_INTERVAL,
     CONF_SESSION_STORE_ID,
+    CONF_SETTINGS_INTERVAL,
     CONF_USER_ID,
     DEFAULT_INTERVAL,
+    DEFAULT_REQUEST_SPACING,
+    DEFAULT_RESOURCE_INTERVAL,
+    DEFAULT_SETTINGS_INTERVAL,
     DOMAIN,
     MAX_INTERVAL,
+    MAX_RESOURCE_INTERVAL,
+    MAX_SETTINGS_INTERVAL,
     MIN_INTERVAL,
+    MIN_RESOURCE_INTERVAL,
+    MIN_SETTINGS_INTERVAL,
+    REQUEST_SPACINGS,
 )
 from .coordinator import async_create_client
 from .credential_store import (
@@ -72,6 +83,11 @@ class AqaraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 2
     MINOR_VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> config_entries.OptionsFlow:
+        return AqaraOptionsFlow()
 
     def __init__(self) -> None:
         self._pending: dict[str, Any] = {}
@@ -435,6 +451,80 @@ class AqaraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await async_delete_session(self.hass, self._session_store_id)
         except CredentialStoreError:
             _LOGGER.warning("Aqara abandoned session cleanup could not complete")
+
+
+class AqaraOptionsFlow(config_entries.OptionsFlow):
+    """Separate live status cadence, slow settings and experimental request spacing."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        limits = {
+            CONF_INTERVAL: (MIN_INTERVAL, MAX_INTERVAL, DEFAULT_INTERVAL),
+            CONF_RESOURCE_INTERVAL: (
+                MIN_RESOURCE_INTERVAL,
+                MAX_RESOURCE_INTERVAL,
+                DEFAULT_RESOURCE_INTERVAL,
+            ),
+            CONF_SETTINGS_INTERVAL: (
+                MIN_SETTINGS_INTERVAL,
+                MAX_SETTINGS_INTERVAL,
+                DEFAULT_SETTINGS_INTERVAL,
+            ),
+        }
+        if user_input is not None:
+            normalized: dict[str, int] = {}
+            for key, (minimum, maximum, default) in limits.items():
+                value = user_input.get(
+                    key,
+                    self.config_entry.options.get(key, self.config_entry.data.get(key, default)),
+                )
+                if (
+                    type(value) not in (int, float)
+                    or not minimum <= value <= maximum
+                    or value != int(value)
+                ):
+                    errors[key] = "invalid_interval"
+                else:
+                    normalized[key] = int(value)
+            spacing = user_input.get(
+                CONF_REQUEST_SPACING,
+                self.config_entry.options.get(CONF_REQUEST_SPACING, DEFAULT_REQUEST_SPACING),
+            )
+            if type(spacing) not in (int, float) or spacing not in REQUEST_SPACINGS:
+                errors[CONF_REQUEST_SPACING] = "invalid_spacing"
+            else:
+                normalized[CONF_REQUEST_SPACING] = int(spacing)
+            if not errors:
+                return self.async_create_entry(
+                    title="", data={**self.config_entry.options, **normalized}
+                )
+        fields: dict = {}
+        for key, (minimum, maximum, default) in limits.items():
+            fields[
+                vol.Required(
+                    key,
+                    default=self.config_entry.options.get(
+                        key, self.config_entry.data.get(key, default)
+                    ),
+                )
+            ] = selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=minimum,
+                    max=maximum,
+                    step=1,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="s",
+                )
+            )
+        fields[
+            vol.Required(
+                CONF_REQUEST_SPACING,
+                default=self.config_entry.options.get(
+                    CONF_REQUEST_SPACING, DEFAULT_REQUEST_SPACING
+                ),
+            )
+        ] = vol.In(REQUEST_SPACINGS)
+        return self.async_show_form(step_id="init", data_schema=vol.Schema(fields), errors=errors)
 
 
 def _selection_complete(snapshot: AccountSnapshot, selected: list[str]) -> bool:

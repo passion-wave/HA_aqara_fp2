@@ -16,7 +16,7 @@ ist bestanden; die Installation als benutzerdefiniertes Repository ist verfügba
 HACS öffnen, Menü **Benutzerdefinierte Repositories**, Repository-URL
 `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
 Anschließend Aqara Presence Lab herunterladen und HA regulär neu starten.
-Im Versionsdialog die Daten-Beta **0.3.0b1** auswählen.
+Im Versionsdialog die Daten-Beta **0.4.0b1** auswählen.
 
 Unter **Geräte & Dienste → Integration hinzufügen → Aqara Presence Lab** den
 Anmeldeweg öffnen. Die Zustimmung aktiviert den experimentellen Cloud-Zugriff
@@ -52,8 +52,9 @@ abgelehnte Zugangsdaten werden als erforderliche Benutzeraktion angezeigt.
 Vorübergehende Netzwerkfehler erlauben einen späteren Versuch nach dem Backoff;
 ein einzelner Abruf wiederholt die Anmeldung nicht in einer Schleife.
 
-Zwischen Kontozugriffen liegen mindestens 30 Sekunden; auch Login und die
-anschließende Geräteprüfung teilen diesen Abstand. Deshalb zeigt die Einrichtung
+Standardmäßig liegen zwischen Kontozugriffen mindestens 30 Sekunden.
+Login und anschließende Geräteprüfung behalten diesen Mindestabstand auch
+bei experimentell verkürzten Leseabständen. Deshalb zeigt die Einrichtung
 einen Fortschritt an. Serverpausen können eine spätere Wiederholung erfordern.
 
 Die Geräte-IDs stammen beispielsweise aus einem lokalen Aqara-Mitschnitt. Eine
@@ -62,12 +63,21 @@ kopieren. Details: [Anmeldung und Speicherung](AUTHENTICATION.md).
 
 ## Zusätzliche Daten nach dem Update
 
-Version 0.3.0b1 übernimmt das bestehende Konfigurationsschema und die lokale
+Version 0.4.0b1 übernimmt das bestehende Konfigurationsschema und die lokale
 Sitzung. Nach dem Update und Neustart erscheinen tatsächlich gelieferte
 Ressourcen bei den vorhandenen FP2. Der erste Hintergrundlauf benötigt
 mehrere Minuten. Zonen und Einstellungen sind zunächst deaktiviert; nur die
 benötigten Entitäten einschalten. Umfang und Status sind im
 [Datenkatalog](DATEN.md) erklärt.
+
+## Prioritäten und Geschwindigkeit
+
+In **Konfigurieren** lassen sich Status-/Vitalintervall, seltene Einstellungen,
+QLINK-Intervall und Kontoabstand getrennt einstellen. Standardmäßig gelten
+60 / 3600 / 300 Sekunden und 30 Sekunden Kontoabstand. Der administrative
+Test mit zehn Abfragen ist in [Abfragegeschwindigkeit](POLLING.md) erklärt.
+Der neue [Push-Plan](PUSH_PLAN.md) beschreibt die getrennten lokalen und
+Cloud-Pfade samt noch erforderlichen Nachweisen.
 
 ## Diagnose
 

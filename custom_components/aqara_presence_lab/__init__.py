@@ -28,9 +28,16 @@ from .const import (
 )
 from .coordinator import AqaraCoordinator, async_create_entry_client
 from .credential_store import CredentialStoreError, async_delete_session
+from .polling_probe import async_register_probe_service
 from .repairs import async_remove_issues, async_set_issue
 
 type AqaraConfigEntry = ConfigEntry[AqaraCoordinator]
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Register account-scoped administrative diagnostics actions."""
+    async_register_probe_service(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: AqaraConfigEntry) -> bool:

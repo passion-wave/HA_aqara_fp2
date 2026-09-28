@@ -30,9 +30,11 @@ def test_release_is_reproducible_and_contains_only_runtime_files():
         assert prefix + "api/SleepRadar-LICENSE.txt" in paths
         assert prefix + "api/AqaraDevices-LICENSE.txt" in paths
         assert prefix + "api/resources.py" in paths
+        assert prefix + "polling_probe.py" in paths
+        assert prefix + "services.yaml" in paths
         manifest = json.loads(archive.read(prefix + "manifest.json"))
         assert manifest["domain"] == "aqara_presence_lab"
-        assert manifest["version"] == "0.3.0b1"
+        assert manifest["version"] == "0.4.0b1"
         for name in paths:
             if name.endswith(".py"):
                 compile(archive.read(name), name, "exec")

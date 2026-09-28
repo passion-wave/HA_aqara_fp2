@@ -11,7 +11,7 @@ Anmeldung am europäischen Aqara-Konto, lokaler Speicherung in `secrets.yaml`
 und automatischer Neuanmeldung nach bestätigtem Sitzungsablauf.
 Die vorhandene lokale HomeKit-Anbindung bleibt unabhängig.
 
-> **0.3.0b1 erweitert die experimentelle Cloud-Integration.** Anmeldung und
+> **0.4.0b1 priorisiert Status und Vitalwerte und liest Einstellungen seltener.** Anmeldung und
 > Trait-Abruf sowie beide zusätzlichen Ressourcenendpunkte wurden am eigenen
 > EU-Konto mit zwei FP2 bestätigt. Neue Entitäten zeigen tatsächlich gelieferte Werte.
 > Modus, Firmware und Cloud-Antwort bestimmen den tatsächlichen Umfang;
@@ -22,7 +22,8 @@ Die vorhandene lokale HomeKit-Anbindung bleibt unabhängig.
 - Anmeldung mit Aqara-Konto und Passwort; alternativ vorhandene Einträge in `secrets.yaml` verwenden.
 - Passwörter getrennt von Config Entries, Sitzungstokens in einem privaten lokalen Speicher.
 - Automatische Neuanmeldung bei bestätigtem Tokenablauf mit Prüfung derselben Kontoidentität und des Gerätezugriffs.
-- Ein gemeinsamer Datenabruf pro Konto, konfigurierbares Intervall und manuelle Aktualisierung mit gemeinsamem Mindestabstand.
+- Unabhängige Status-/Vitalabfragen, stündliche Einstellungen und ein gemeinsamer Kontolimiter mit konfigurierbaren Abständen.
+- Begrenzter Administrator-Test mit höchstens zehn schnelleren Abfragen, Fehlerabbruch und bereinigten Zeitmessungen.
 - Zuletzt gemeldete Helligkeit, numerische Rohcodes, Verbindungsstatus und Datenqualität.
 - Zusätzlicher Katalog mit 81 Statusfeldern und sieben lesbaren Einstellungen: Schlafwerte, Gerätemodus, Personenzählung, bis zu 30 Zonen und Diagnosedaten.
 - Entitäten werden erst nach einem gelieferten Wert angelegt; Zonen und Einstellungen sind zunächst deaktiviert.
@@ -43,7 +44,7 @@ Getestete Basis: **Home Assistant 2026.9.3**, Python 3.14, Aqara-Region **EU**.
 
 1. In HACS als benutzerdefiniertes Repository hinzufügen:
    `https://github.com/passion-wave/HA_aqara_fp2`, Kategorie **Integration**.
-2. **Aqara Presence Lab**, Version **0.3.0b1**, herunterladen und Home Assistant neu starten.
+2. **Aqara Presence Lab**, Version **0.4.0b1**, herunterladen und Home Assistant neu starten.
 3. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **Aqara Presence Lab** suchen.
 4. Den Anmeldeweg öffnen, automatische Anmeldung erlauben und Zugangsdaten lokal eingeben oder vorhandene Secret-Namen angeben.
 5. Geräte-IDs eintragen, die Verbindungsprüfung abwarten und Geräte sowie Intervall auswählen.
@@ -61,6 +62,8 @@ Die Integration gibt diese weder in Logs noch in Diagnoseexporten aus.
 | Dokument | Inhalt |
 |---|---|
 | [Installation und Betrieb](docs/INSTALLATION.md) | Einrichtung, HACS-Update, Reauth und Entfernen |
+| [Abfragegeschwindigkeit](docs/POLLING.md) | Prioritäten, Optionen, Rückfall und kontrollierter Test |
+| [Push-Plan](docs/PUSH_PLAN.md) | Recherche, Machbarkeit, lokale Präsenz und geplanter Cloud-Push |
 | [Daten und Entitäten](docs/DATEN.md) | Verfügbare Gruppen, Modi, Einheiten und fehlende Werte |
 | [Anmeldung und Speicherung](docs/AUTHENTICATION.md) | Secret-Einträge, Sitzungswechsel und Fehlerverhalten |
 | [Logs und Diagnose](docs/LOGGING.md) | Ereignisse, Logstufen und bereinigte Supportdaten |

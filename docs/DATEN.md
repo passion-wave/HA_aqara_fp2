@@ -49,11 +49,14 @@ die deaktivierten Entitäten einblenden und die gewünschten aktivieren. Sie
 behalten ihre Kennung über Tokenwechsel und Neustarts hinweg.
 
 Zusatzabfragen laufen nacheinander im Hintergrund. Alle Kontozugriffe teilen
-mindestens 30 Sekunden Abstand. Bei zwei Geräten benötigen die vier zusätzlichen
+standardmäßig mindestens 30 Sekunden Abstand. Bei zwei Geräten benötigen die vier zusätzlichen
 Abfragen deshalb normalerweise ungefähr zwei Minuten nach dem Trait-Abruf;
 Serverpausen und konkurrierende Abrufe können diese Zeit verlängern. Es werden
 nicht 81 einzelne Anfragen pro Gerät gesendet: alle Statusfelder werden
 zusammen angefordert, die sieben Einstellungen in einer zweiten Anfrage.
+Ab 0.4.0b1 läuft der Statusabruf unabhängig im Rundlauf, Einstellungen
+standardmäßig nur stündlich. Details und kürzere experimentelle Abstände:
+[Priorisierte Abfragen](POLLING.md).
 
 ## Qualität und fehlende Werte
 

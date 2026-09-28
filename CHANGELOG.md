@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.4.0b1 — Priorisierte Abfragen und Push-Plan
+
+- Unabhängiger Status-/Vitalrundlauf, seltene Einstellungen und faire Verteilung je Gerät.
+- Optionen für Ressourcen-, Einstellungs-, QLINK- und gemeinsame Kontoabstände; bestehende Entitäten erhalten.
+- Zehn begrenzte Testabfragen mit 15/10/5 Sekunden, Fehlerabbruch und bereinigten Laufzeitstatistiken.
+- Konservativer Rückfall bei Fehlern, unveränderte Login-Mindestabstände und getrennte Empfangsalter.
+- Quellenbelegte HomeKit-/Cloud-Push-Machbarkeitsprüfung und konkreter [Integrationsplan](docs/PUSH_PLAN.md).
+
 ## 0.3.0b1 — Zusätzliche FP2-Daten
 
 - Zwei zusätzliche, ausschließlich lesende Ressourcenabfragen mit 81 Statusfeldern und sieben Einstellungen pro Gerät.

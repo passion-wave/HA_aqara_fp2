@@ -7,6 +7,7 @@ from dataclasses import replace
 from datetime import datetime, timedelta
 from hashlib import sha256
 from time import monotonic
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -44,9 +45,14 @@ from .const import (
     CONF_INTERVAL,
     CONF_PASSWORD_SECRET,
     CONF_REGION,
+    CONF_REQUEST_SPACING,
+    CONF_RESOURCE_INTERVAL,
     CONF_SESSION_STORE_ID,
+    CONF_SETTINGS_INTERVAL,
     CONF_USER_ID,
     DEFAULT_INTERVAL,
+    DEFAULT_RESOURCE_INTERVAL,
+    DEFAULT_SETTINGS_INTERVAL,
     DOMAIN,
     REFRESH_COOLDOWN,
     TRANSPORT_TIMEOUT,
@@ -112,7 +118,7 @@ async def async_create_entry_client(hass: HomeAssistant, entry: ConfigEntry) -> 
     async def persist(session: SessionCredentials) -> None:
         await async_save_session(hass, data[CONF_SESSION_STORE_ID], session)
 
-    return await async_create_client(
+    client = await async_create_client(
         hass,
         credential_loader=credentials,
         persist_session=persist,
@@ -120,6 +126,8 @@ async def async_create_entry_client(hass: HomeAssistant, entry: ConfigEntry) -> 
         expected_user_id=data[CONF_USER_ID],
         consent=True,
     )
+    client.limiter.configure_read_spacing(entry.options.get(CONF_REQUEST_SPACING, 30))
+    return client
 
 
 class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
@@ -169,12 +177,30 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self.resource_received_monotonic: dict[tuple[str, str], float] = {}
         self.resource_successful_reads = 0
         self.resource_failed_reads = 0
+        self.resource_interval = entry.options.get(
+            CONF_RESOURCE_INTERVAL,
+            entry.data.get(CONF_RESOURCE_INTERVAL, DEFAULT_RESOURCE_INTERVAL),
+        )
+        self.settings_interval = entry.options.get(
+            CONF_SETTINGS_INTERVAL,
+            entry.data.get(CONF_SETTINGS_INTERVAL, DEFAULT_SETTINGS_INTERVAL),
+        )
         self._resource_task: asyncio.Task[None] | None = None
+        self._resource_timer: asyncio.TimerHandle | None = None
         self._resource_cursor = 0
-        self._resource_max_age = max(
-            self._max_receive_age,
-            interval
-            + len(self.device_ids) * 4 * max(interval, REFRESH_COOLDOWN + TRANSPORT_TIMEOUT),
+        self._settings_cursor = 0
+        self._hot_since_settings = 0
+        self._supplemental_started = False
+        self._supplemental_paused = False
+        self._supplemental_terminal_error: str | None = None
+        self.polling_probe: dict[str, Any] | None = None
+        self._probe_task: asyncio.Task[None] | None = None
+        self._initial_queries = tuple(
+            (device_id, kind) for kind in ("resources", "settings") for device_id in self.device_ids
+        )
+        self._initial_cursor = 0
+        self.resource_next_due: dict[tuple[str, str], float] = dict.fromkeys(
+            self._initial_queries, 0.0
         )
 
     @callback
@@ -202,9 +228,9 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
                     async_set_issue(self.hass, self.entry.entry_id, "cannot_connect")
                 changed = True
         for key, received in self.resource_received_monotonic.items():
-            if self._clock() - received > self._resource_max_age and self.resource_status.get(
-                key
-            ) in ("ready", "updating"):
+            if self._clock() - received > self.resource_max_receive_age(
+                key[1]
+            ) and self.resource_status.get(key) in ("ready", "updating"):
                 self.resource_status[key] = "stale"
                 changed = True
         if changed:
@@ -214,6 +240,10 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
     async def _async_update_data(self) -> AccountSnapshot:
         """Coalesce concurrent refreshes; never multiply client retry loops."""
         if self._closed:
+            raise UpdateFailed(translation_domain=DOMAIN, translation_key="cannot_connect")
+        if self._supplemental_paused:
+            if self.data is not None:
+                return self.data
             raise UpdateFailed(translation_domain=DOMAIN, translation_key="cannot_connect")
         if self._terminal_error is not None:
             error_type = (
@@ -267,6 +297,8 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
                 translation_domain=DOMAIN, translation_key="protocol_unsupported"
             ) from err
         except RateLimited as err:
+            if err.request_sent:
+                self._suspend_acceleration()
             self._set_failure("retry_wait", "rate_limited")
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -300,6 +332,7 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self.last_successful_read = snapshot.received_at_utc
         async_clear_connection_issues(self.hass, self.entry.entry_id)
         async_set_issue(self.hass, self.entry.entry_id, "freshness_unverified")
+        self._supplemental_started = True
         self.async_schedule_supplemental()
         return snapshot
 
@@ -328,7 +361,7 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
             and group.available
             and self.resource_status.get(key) in ("ready", "updating")
             and received is not None
-            and self._clock() - received <= self._resource_max_age
+            and self._clock() - received <= self.resource_max_receive_age(query_kind)
         )
 
     def resource_sleep_mode(self, device_id: str) -> bool:
@@ -342,61 +375,194 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
             and mode.value == 9
         )
 
+    def resource_max_receive_age(self, query_kind: str) -> float:
+        """Receive-age limits describe transport health, never measurement age."""
+        spacing = float(getattr(self.client.limiter, "read_spacing", REFRESH_COOLDOWN))
+        sweep = (len(self.device_ids) + 1) * (spacing + TRANSPORT_TIMEOUT)
+        if query_kind == "settings":
+            return 2 * self.settings_interval + 2 * sweep
+        return max(2 * self.resource_interval, 2 * sweep)
+
+    def _next_supplemental_key(self) -> tuple[str, str] | None:
+        """Prioritize hot observations, while bounding overdue-settings starvation."""
+        now = self._clock()
+        if self._initial_cursor < len(self._initial_queries):
+            key = self._initial_queries[self._initial_cursor]
+            return key if self.resource_next_due[key] <= now else None
+        hot = next(
+            (
+                (
+                    self.device_ids[(self._resource_cursor + offset) % len(self.device_ids)],
+                    "resources",
+                )
+                for offset in range(len(self.device_ids))
+                if self.resource_next_due[
+                    (
+                        self.device_ids[(self._resource_cursor + offset) % len(self.device_ids)],
+                        "resources",
+                    )
+                ]
+                <= now
+            ),
+            None,
+        )
+        setting = next(
+            (
+                (
+                    self.device_ids[(self._settings_cursor + offset) % len(self.device_ids)],
+                    "settings",
+                )
+                for offset in range(len(self.device_ids))
+                if self.resource_next_due[
+                    (
+                        self.device_ids[(self._settings_cursor + offset) % len(self.device_ids)],
+                        "settings",
+                    )
+                ]
+                <= now
+            ),
+            None,
+        )
+        if setting and (hot is None or self._hot_since_settings >= 2 * len(self.device_ids)):
+            return setting
+        return hot or setting
+
     @callback
     def async_schedule_supplemental(self) -> None:
-        """Supplemental calls never hold up setup or replace the primary batch."""
-        if self._closed or self._resource_task is not None:
+        """Start one bounded read; its timer continues independently of QLINK."""
+        if (
+            self._closed
+            or self._supplemental_paused
+            or self._supplemental_terminal_error
+            or not self._supplemental_started
+            or self._resource_task is not None
+            or self._resource_timer is not None
+        ):
             return
         self._resource_task = self.hass.async_create_background_task(
-            self._async_fetch_supplemental(), name="Aqara supplemental reads", eager_start=False
+            self._async_fetch_supplemental(), name="Aqara supplemental read", eager_start=False
         )
 
+    @callback
+    def _async_supplemental_timer(self) -> None:
+        self._resource_timer = None
+        self.async_schedule_supplemental()
+
+    @callback
+    def _schedule_next_supplemental(self) -> None:
+        if self._closed or self._supplemental_paused or self._supplemental_terminal_error:
+            return
+        if self._initial_cursor < len(self._initial_queries):
+            due = self.resource_next_due[self._initial_queries[self._initial_cursor]]
+        else:
+            due = min(
+                self.resource_next_due.values(), default=self._clock() + self.resource_interval
+            )
+        delay = max(0.01, due - self._clock(), self.client.limiter.retry_after)
+        self._resource_timer = self.hass.loop.call_later(delay, self._async_supplemental_timer)
+
     async def _async_fetch_supplemental(self) -> None:
-        queries = [
-            (device_id, kind) for device_id in self.device_ids for kind in ("resources", "settings")
-        ]
         try:
-            for _ in queries:
-                if self._closed:
-                    return
-                key = queries[self._resource_cursor]
-                device_id, query_kind = key
-                method = (
-                    self.client.async_read_resources
-                    if query_kind == "resources"
-                    else self.client.async_read_resource_settings
+            if self._closed or self._supplemental_paused or self._supplemental_terminal_error:
+                return
+            key = self._next_supplemental_key()
+            if key is None:
+                return
+            await self.async_read_supplemental_group(*key)
+            if self.resource_errors.get(key) == "rate_limited":
+                return  # Preserve the cursor until server backoff has elapsed.
+            if self._initial_cursor < len(self._initial_queries):
+                self._initial_cursor += 1
+            device_id, kind = key
+            if kind == "resources":
+                self._resource_cursor = (self.device_ids.index(device_id) + 1) % len(
+                    self.device_ids
                 )
-                self.resource_status[key] = "updating"
-                self.async_update_listeners()
-                try:
-                    group = await method(device_id)
-                    if group.device_id != device_id or not group.available:
-                        raise InvalidResponse()
-                except RateLimited as error:
-                    self._resource_failed(key, error)
-                    # Keep this position for the next primary poll. Otherwise
-                    # phase-aligned primary reads can permanently skip a group.
-                    return
-                except (AqaraError, CredentialStoreError) as error:
-                    self._resource_failed(key, error)
-                except Exception:
-                    # Do not render arbitrary upstream errors or resource values.
-                    self._resource_failed(key, InvalidResponse())
-                else:
-                    self.resource_data[key] = group
-                    self.resource_status[key] = "ready"
-                    self.resource_errors.pop(key, None)
-                    self.resource_received_monotonic[key] = self._clock()
-                    self.resource_successful_reads += 1
-                self._resource_cursor = (self._resource_cursor + 1) % len(queries)
-                self.async_update_listeners()
+                self._hot_since_settings += 1
+            else:
+                self._settings_cursor = (self.device_ids.index(device_id) + 1) % len(
+                    self.device_ids
+                )
+                self._hot_since_settings = 0
         finally:
             self._resource_task = None
             if not self._closed:
                 self.async_update_listeners()
+                self._schedule_next_supplemental()
+
+    async def async_read_supplemental_group(self, device_id: str, query_kind: str) -> bool:
+        """Read and publish one group, also usable during a bounded local probe."""
+        key = (device_id, query_kind)
+        if self._closed or key not in self.resource_next_due:
+            return False
+        interval = self.resource_interval if query_kind == "resources" else self.settings_interval
+        previous_status = self.resource_status.get(key, "not_read")
+        self.resource_status[key] = "updating"
+        self.async_update_listeners()
+        method = (
+            self.client.async_read_resources
+            if query_kind == "resources"
+            else self.client.async_read_resource_settings
+        )
+        try:
+            group = await method(device_id)
+            if group.device_id != device_id or not group.available:
+                raise InvalidResponse()
+        except asyncio.CancelledError:
+            self.resource_status[key] = previous_status
+            raise
+        except RateLimited as error:
+            self._resource_failed(key, error)
+            self.resource_next_due[key] = self._clock() + max(
+                self.client.limiter.retry_after,
+                error.retry_after or 0,
+                float(getattr(self.client.limiter, "read_spacing", REFRESH_COOLDOWN)),
+            )
+            return False
+        except (AqaraError, CredentialStoreError) as error:
+            self._resource_failed(key, error)
+            self.resource_next_due[key] = self._clock() + max(
+                interval, self.client.limiter.retry_after
+            )
+            return False
+        except Exception:
+            self._resource_failed(key, InvalidResponse())
+            self.resource_next_due[key] = self._clock() + max(
+                interval, self.client.limiter.retry_after
+            )
+            return False
+        else:
+            self.resource_data[key] = group
+            self.resource_status[key] = "ready"
+            self.resource_errors.pop(key, None)
+            self.resource_received_monotonic[key] = self._clock()
+            self.resource_next_due[key] = self._clock() + interval
+            self.resource_successful_reads += 1
+            return True
+        finally:
+            self.async_update_listeners()
+
+    async def async_pause_supplemental(self) -> None:
+        """Drain integration reads before a bounded experiment owns the limiter."""
+        self._supplemental_paused = True
+        if self._resource_timer is not None:
+            self._resource_timer.cancel()
+            self._resource_timer = None
+        if self._resource_task is not None:
+            self._resource_task.cancel()
+            await asyncio.gather(self._resource_task, return_exceptions=True)
+        if self._inflight is not None:
+            await asyncio.gather(asyncio.shield(self._inflight), return_exceptions=True)
+
+    @callback
+    def async_resume_supplemental(self) -> None:
+        self._supplemental_paused = False
+        self.async_schedule_supplemental()
 
     @callback
     def _resource_failed(self, key: tuple[str, str], error: Exception) -> None:
+        if not isinstance(error, RateLimited) or error.request_sent:
+            self._suspend_acceleration()
         error_key = (
             "rate_limited"
             if isinstance(error, RateLimited)
@@ -411,13 +577,24 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         self.resource_errors[key] = error_key
         self.resource_status[key] = "unavailable"
         self.resource_failed_reads += 1
+        if isinstance(
+            error, (AuthenticationRequired, ProtocolUnsupported, AccountMismatch, SignatureRejected)
+        ):
+            self._supplemental_terminal_error = error_key
         if old := self.resource_data.get(key):
             self.resource_data[key] = replace(
                 old, observations={}, available=False, error=error_key
             )
 
     @callback
+    def _suspend_acceleration(self) -> None:
+        if suspend := getattr(self.client.limiter, "suspend_acceleration", None):
+            suspend()
+
+    @callback
     def _set_failure(self, status: str, key: str) -> None:
+        if key != "rate_limited":
+            self._suspend_acceleration()
         self.failed_reads += 1
         if self.error_key != key:
             _LOGGER.warning("Aqara cloud update requires attention: %s", key)
@@ -427,6 +604,12 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
             self._terminal_error = key
             self.update_interval = None
             self._unschedule_refresh()
+            self._supplemental_terminal_error = key
+            if self._resource_timer is not None:
+                self._resource_timer.cancel()
+                self._resource_timer = None
+            if self._resource_task is not None:
+                self._resource_task.cancel()
         async_set_issue(
             self.hass,
             self.entry.entry_id,
@@ -440,6 +623,12 @@ class AqaraCoordinator(DataUpdateCoordinator[AccountSnapshot]):
         if self._closed:
             return
         self._closed = True
+        if self._probe_task is not None:
+            self._probe_task.cancel()
+            await asyncio.gather(self._probe_task, return_exceptions=True)
+        if self._resource_timer is not None:
+            self._resource_timer.cancel()
+            self._resource_timer = None
         if self._resource_task is not None:
             self._resource_task.cancel()
             await asyncio.gather(self._resource_task, return_exceptions=True)

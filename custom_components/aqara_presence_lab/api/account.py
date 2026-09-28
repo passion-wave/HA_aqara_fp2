@@ -207,8 +207,10 @@ class ManagedAqaraClient:
         # Resource reads explicitly use only the last accepted session instead.
         return await operation(device_id, credentials=credentials)
 
-    async def _wait_cooldown(self) -> None:
-        delay = self.limiter.retry_after
+    async def _wait_cooldown(self, *, authentication: bool = False) -> None:
+        delay = (
+            self.limiter.authentication_retry_after if authentication else self.limiter.retry_after
+        )
         if delay > MAX_AUTH_WAIT:
             # Server backoff is not a reason to park a config flow indefinitely.
             # Keep a successfully issued candidate for the next permitted call.
@@ -228,7 +230,7 @@ class ManagedAqaraClient:
         generation = self._generation()
         if self._failed_generation == generation:
             raise AuthenticationRequired()
-        await self._wait_cooldown()
+        await self._wait_cooldown(authentication=True)
         self._failed_generation = generation
         try:
             try:
